@@ -26,9 +26,9 @@ model ZakatCalculation {
   zakatType    String
   wealthType   String?
   wealthAmount Float
-  nisabValue   Float
-  zakatRate    Float
-  zakatDue     Float
+  nisabValue   Float?
+  zakatRate    Float?
+  zakatDue     Float?
   explanation  String
   createdAt    DateTime @default(now())
 
