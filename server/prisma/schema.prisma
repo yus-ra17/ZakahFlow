@@ -14,10 +14,13 @@ model User {
   password  String
   role      String   @default("DONOR")
   language  String   @default("en")
+  mosqueId  String? // optional foreign key to Mosque
   createdAt DateTime @default(now())
 
   donations         Donation[]
   zakatCalculations ZakatCalculation[]
+
+  mosque Mosque? @relation(fields: [mosqueId], references: [id])
 }
 
 model ZakatCalculation {
@@ -33,15 +36,17 @@ model ZakatCalculation {
   createdAt    DateTime @default(now())
 
   user      User       @relation(fields: [userId], references: [id])
-  donations Donation[] // one-to-many, no fields/references needed here
+  donations Donation[]
 }
 
 model Mosque {
-  id            String        @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  location      String
-  createdAt     DateTime      @default(now())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  location  String
+  createdAt DateTime @default(now())
+
   beneficiaries Beneficiary[]
+  users         User[] // back-relation to User
 }
 
 model Beneficiary {
@@ -52,8 +57,23 @@ model Beneficiary {
   verified    Boolean @default(false)
   mosqueId    String
 
-  mosque Mosque @relation(fields: [mosqueId], references: [id])
+  mosque      Mosque @relation(fields: [mosqueId], references: [id])
+  distributions Distribution[] @relation("BeneficiaryDistribution") // <-- add this
 }
+
+model Distribution {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  donationId    String?
+  beneficiaryId String
+  amount        Float
+  approved      Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+
+  donation      Donation?   @relation(fields: [donationId], references: [id], name: "DonationDistribution")
+  beneficiary   Beneficiary @relation(fields: [beneficiaryId], references: [id], name: "BeneficiaryDistribution")
+}
+
+
 
 model Project {
   id         String     @id @default(auto()) @map("_id") @db.ObjectId
@@ -65,15 +85,17 @@ model Project {
 }
 
 model Donation {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
   userId      String
   projectId   String?
-  zakatCalcId String? // optional relation to ZakatCalculation
+  zakatCalcId String?
   amount      Float
   zakatType   String
-  createdAt   DateTime @default(now())
+  createdAt   DateTime      @default(now())
 
   user    User              @relation(fields: [userId], references: [id])
   project Project?          @relation(fields: [projectId], references: [id])
   zakat   ZakatCalculation? @relation(fields: [zakatCalcId], references: [id])
+
+  distributions Distribution[] @relation("DonationDistribution") // <-- add this
 }
