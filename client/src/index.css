@@ -1,3 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url("../public/assets/css/all.min.css");
+@import url("../public/assets/css/bootstrap.min.css");
+@import url("../public/assets/css/dark.css");
+@import url("../public/assets/css/module-css/about.css");
+@import url("../public/assets/css/style.css");
+@import url("../public/assets/css/animate.min.css");
+@import url("../public/assets/css/custom-animate.css");
+@import url("../public/assets/css/flaticon.css");
+
+@import url("../public/assets/css/module-css/about.css");
