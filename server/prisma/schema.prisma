@@ -6,15 +6,15 @@ datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
-
-model User {
+ model User {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String?
   email     String   @unique
   password  String
   role      String   @default("DONOR")
   language  String   @default("en")
-  mosqueId  String? // optional foreign key to Mosque
+
+  mosqueId  String?  @db.ObjectId   
   createdAt DateTime @default(now())
 
   donations         Donation[]
@@ -22,6 +22,7 @@ model User {
 
   mosque Mosque? @relation(fields: [mosqueId], references: [id])
 }
+
 
 model ZakatCalculation {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -47,33 +48,43 @@ model Mosque {
 
   beneficiaries Beneficiary[]
   users         User[] // back-relation to User
+  adminInvites  MosqueAdminInvite[]
 }
 
 model Beneficiary {
-  id          String  @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  description String
-  imageUrl    String?
-  verified    Boolean @default(false)
-  mosqueId    String
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  description   String
+  gender        String
+  maritalStatus String
+  familiesCount Int      @default(1)
+  phone         String?
+  address       String?
+  verified      Boolean  @default(true)
 
-  mosque      Mosque @relation(fields: [mosqueId], references: [id])
-  distributions Distribution[] @relation("BeneficiaryDistribution") // <-- add this
+  mosqueId      String   @db.ObjectId
+  mosque        Mosque   @relation(fields: [mosqueId], references: [id])
+
+  distributions Distribution[] @relation("BeneficiaryDistribution")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
+
+
+
 model Distribution {
-  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
   donationId    String?
   beneficiaryId String
   amount        Float
-  approved      Boolean     @default(false)
-  createdAt     DateTime    @default(now())
+  approved      Boolean  @default(false)
+  createdAt     DateTime @default(now())
 
-  donation      Donation?   @relation(fields: [donationId], references: [id], name: "DonationDistribution")
-  beneficiary   Beneficiary @relation(fields: [beneficiaryId], references: [id], name: "BeneficiaryDistribution")
+  donation    Donation?   @relation(fields: [donationId], references: [id], name: "DonationDistribution")
+  beneficiary Beneficiary @relation(fields: [beneficiaryId], references: [id], name: "BeneficiaryDistribution")
 }
-
-
 
 model Project {
   id         String     @id @default(auto()) @map("_id") @db.ObjectId
@@ -85,17 +96,31 @@ model Project {
 }
 
 model Donation {
-  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   userId      String
   projectId   String?
   zakatCalcId String?
   amount      Float
   zakatType   String
-  createdAt   DateTime      @default(now())
+  createdAt   DateTime @default(now())
 
   user    User              @relation(fields: [userId], references: [id])
   project Project?          @relation(fields: [projectId], references: [id])
   zakat   ZakatCalculation? @relation(fields: [zakatCalcId], references: [id])
 
   distributions Distribution[] @relation("DonationDistribution") // <-- add this
+}
+
+model MosqueAdminInvite {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String
+
+  mosqueId  String   @db.ObjectId
+  token     String   @unique
+  role      String   @default("MOSQUE_ADMIN")
+  status    String   @default("PENDING")
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  mosque Mosque @relation(fields: [mosqueId], references: [id])
 }

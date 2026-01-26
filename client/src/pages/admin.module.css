@@ -1,0 +1,268 @@
+/* ------------------ PAGE LAYOUT ------------------ */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 251, 235, 0.05);
+}
+
+.main {
+  flex: 1;
+  padding: 2rem;
+}
+
+/* ------------------ ADMIN INFO CARD ------------------ */
+.adminCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  background: rgba(254, 243, 199, 0.3);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(253, 230, 138, 1);
+}
+
+@media (min-width: 768px) {
+  .adminCard {
+    flex-direction: row;
+  }
+}
+
+.adminName {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgb(161, 98, 7);
+}
+
+.adminRole {
+  font-size: 1rem;
+  font-weight: 500;
+  color: rgb(202, 138, 4);
+}
+
+.verseWrap {
+  margin-top: 1rem;
+  max-width: 28rem;
+  text-align: right;
+}
+
+@media (min-width: 768px) {
+  .verseWrap {
+    margin-top: 0;
+  }
+}
+
+.verse {
+  font-size: 1.125rem;
+  color: rgb(133, 77, 14);
+  font-style: italic;
+}
+
+.verseBold {
+  font-weight: 700;
+}
+
+/* ------------------ TITLES ------------------ */
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgb(133, 77, 14);
+  margin-bottom: 1rem;
+}
+
+/* ------------------ BUTTONS ------------------ */
+.actionBtn {
+  padding: 0.5rem 1rem;
+  background: rgba(253, 230, 138, 0.5);
+  color: rgb(133, 77, 14);
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+  margin-bottom: 1rem;
+}
+
+.actionBtn:hover {
+  background: rgba(253, 224, 71, 0.9);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+/* ------------------ TABLE ------------------ */
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(253, 230, 138, 1);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  border-collapse: collapse;
+}
+
+.theadRow {
+  background: rgba(253, 230, 138, 0.5);
+  color: rgb(133, 77, 14);
+}
+
+.tr {
+  border-bottom: 1px solid rgba(253, 230, 138, 0.5);
+  transition: 0.2s ease;
+}
+
+.tr:hover {
+  background: rgba(254, 243, 199, 0.2);
+}
+
+.td,
+th {
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+}
+
+.actionsCell {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+}
+
+/* ------------------ SMALL ACTION BUTTONS ------------------ */
+.smallBtn {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.editBtn {
+  background: rgba(253, 224, 71, 0.5);
+  color: rgb(133, 77, 14);
+}
+
+.editBtn:hover {
+  background: rgba(250, 204, 21, 0.9);
+}
+
+.deleteBtn {
+  background: rgba(239, 68, 68, 0.5);
+  color: rgb(153, 27, 27);
+}
+
+.deleteBtn:hover {
+  background: rgba(220, 38, 38, 0.85);
+}
+
+/* ------------------ MODAL OVERLAY ------------------ */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 50;
+}
+
+/* ------------------ MODAL CARD ------------------ */
+.modalCard {
+  background: rgb(255, 251, 235);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 28rem;
+}
+
+/* ------------------ MODAL TITLES ------------------ */
+.modalTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: rgb(133, 77, 14);
+}
+
+.modalTitleDanger {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: rgb(185, 28, 28);
+}
+
+/* ------------------ FORM ------------------ */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.input,
+.select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgb(253, 224, 71);
+  border-radius: 0.25rem;
+  background: rgb(255, 251, 235);
+  outline: none;
+}
+
+/* ------------------ MODAL BUTTONS ------------------ */
+.modalButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.btnGray {
+  padding: 0.5rem 1rem;
+  background: rgb(209, 213, 219);
+  color: rgb(55, 65, 81);
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+}
+
+.btnGray:hover {
+  background: rgb(156, 163, 175);
+}
+
+.btnGreen {
+  padding: 0.5rem 1rem;
+  background: rgb(134, 239, 172);
+  color: rgb(20, 83, 45);
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+}
+
+.btnGreen:hover {
+  background: rgb(74, 222, 128);
+}
+
+.btnRed {
+  padding: 0.5rem 1rem;
+  background: rgb(239, 68, 68);
+  color: rgb(127, 29, 29);
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+}
+
+.btnRed:hover {
+  background: rgb(220, 38, 38);
+}
+
+/* ------------------ CENTER TEXT & ERRORS ------------------ */
+.centerText {
+  text-align: center;
+}
+
+.errorText {
+  color: rgb(220, 38, 38);
+  margin-bottom: 0.5rem;
+}

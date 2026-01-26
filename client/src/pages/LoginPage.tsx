@@ -13,10 +13,21 @@ export function LoginPage() {
 
   const handleLogin = async () => {
     try {
-      // Login route connected
       const res = await api.post("/auth/login", { email, password });
+
+      // 🔐 Save auth data
       localStorage.setItem("token", res.data.token);
-      window.location.href = "/zakahcalculator"; // Redirect to homepage after login
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
+      // ✅ Redirect based on role
+      const role = res.data.user.role;
+      if (role === "SUPERADMIN") {
+        window.location.href = "/superadmin";
+      } else if (role === "ADMIN") {
+        window.location.href = "/admin"; // <-- Admin Dashboard
+      } else {
+        window.location.href = "/zakahcalculator"; // Default for donors
+      }
     } catch (err: any) {
       setError(err.response?.data?.error || "Login failed");
     }
@@ -50,10 +61,6 @@ export function LoginPage() {
           {/* Welcome */}
           <div className={styles.formWelcomeBox}>
             <h1 className={styles.formWelcomeTitle}>Welcome Back!</h1>
-            {/* <p className={styles.formWelcomeText}>
-              Purify your soul <br />
-              by giving zakah to those in need
-            </p> */}
           </div>
 
           {/* Login Title */}
@@ -90,7 +97,6 @@ export function LoginPage() {
               title={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (
-                // Slashed eye (hide)
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"
@@ -107,7 +113,6 @@ export function LoginPage() {
                   <path d="M10.58 10.58a3 3 0 0 1 4.24 4.24"></path>
                 </svg>
               ) : (
-                // Eye (show)
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"

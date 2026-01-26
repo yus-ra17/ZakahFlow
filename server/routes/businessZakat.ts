@@ -2,7 +2,6 @@ import { Router } from "express";
 import prisma from "../lib/prisma";
 import authenticate from "../middleware/auth";
 import axios from "axios";
-
 const router = Router();
 const METALPRICE_API_KEY = process.env.METALPRICE_API_KEY;
 
@@ -11,7 +10,9 @@ router.post("/calculate", authenticate, async (req: any, res) => {
     const { cash, stockValue, debts } = req.body;
 
     if (cash == null || stockValue == null || debts == null) {
-      return res.status(400).json({ error: "cash, stockValue, and debts are required" });
+      return res
+        .status(400)
+        .json({ error: "cash, stockValue, and debts are required" });
     }
 
     // -------------------- Net Business Wealth --------------------
@@ -22,12 +23,14 @@ router.post("/calculate", authenticate, async (req: any, res) => {
       `https://api.metalpriceapi.com/v1/latest?api_key=${METALPRICE_API_KEY}&base=USD&currencies=XAG`
     );
     const silverUSDPerOunce = metalRes.data?.rates?.XAG;
-    if (!silverUSDPerOunce) return res.status(500).json({ error: "Failed to fetch silver price" });
+    if (!silverUSDPerOunce)
+      return res.status(500).json({ error: "Failed to fetch silver price" });
 
     // -------------------- Get USD → ETB Exchange Rate --------------------
     const fxRes = await axios.get("https://www.floatrates.com/daily/usd.json");
     const usdToETB = fxRes.data?.etb?.rate;
-    if (!usdToETB) return res.status(500).json({ error: "Failed to fetch exchange rate" });
+    if (!usdToETB)
+      return res.status(500).json({ error: "Failed to fetch exchange rate" });
 
     // -------------------- Silver Price per Gram in ETB --------------------
     const silverETBPerGram = (silverUSDPerOunce * usdToETB) / 31.1035;
@@ -60,7 +63,9 @@ router.post("/calculate", authenticate, async (req: any, res) => {
         nisabValue: nisabETB,
         zakatRate: rate,
         zakatDue, // ✅ matches variable
-        explanation: `You must give ${zakatDue.toFixed(2)} Birr as zakah (2.5% of net business wealth).`,
+        explanation: `You must give ${zakatDue.toFixed(
+          2
+        )} Birr as zakah (2.5% of net business wealth).`,
       },
     });
 
@@ -70,7 +75,9 @@ router.post("/calculate", authenticate, async (req: any, res) => {
       nisabETB: nisabETB.toFixed(2),
       zakahRate: rate,
       zakatDue: zakatDue.toFixed(2),
-      message: `You must give ${zakatDue.toFixed(2)} Birr as zakah (2.5% of net business wealth).`,
+      message: `You must give ${zakatDue.toFixed(
+        2
+      )} Birr as zakah (2.5% of net business wealth).`,
     });
   } catch (err) {
     console.error("Business Zakat Error:", err);

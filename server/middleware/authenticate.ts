@@ -1,31 +1,39 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import prisma from "../lib/prisma";
 
-interface JwtPayload {
-  userId: string;
-  role: string;
-  mosqueId?: string | null;
-}
-
-const authenticate = (req: Request, res: Response, next: NextFunction) => {
+const authenticate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ error: "Missing token" });
 
   const token = authHeader.split(" ")[1];
-  if (!token) return res.status(401).json({ error: "Missing token" });
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-
-    req.user = {
-      id: payload.userId,
-      role: payload.role,
-      mosqueId: payload.mosqueId ?? null,
-      email: "", // email not included in JWT, optional
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+      userId: string;
     };
 
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: {
+        id: true,
+        role: true,
+        mosqueId: true,
+        email: true, // include if you want
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: "User not found" });
+    }
+
+    req.user = user; // ✅ NOW TYPES MATCH
     next();
-  } catch (err) {
+  } catch {
     return res.status(401).json({ error: "Invalid token" });
   }
 };
