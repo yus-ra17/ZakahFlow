@@ -6,27 +6,72 @@ datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
- model User {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  name      String?
-  email     String   @unique
-  password  String
-  role      String   @default("DONOR")
-  language  String   @default("en")
 
-  mosqueId  String?  @db.ObjectId   
+model User {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  name     String?
+  email    String  @unique
+  password String
+  role     String  @default("DONOR")
+  language String  @default("en")
+
+  mosqueId  String?  @db.ObjectId
   createdAt DateTime @default(now())
 
   donations         Donation[]
   zakatCalculations ZakatCalculation[]
+  donationRequests  DonationRequest[]
 
   mosque Mosque? @relation(fields: [mosqueId], references: [id])
 }
 
+model Donation {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  amount    Float
+  type      String?
+  note      String?
+  status    String   @default("PENDING") // PENDING | RECEIVED
+  createdAt DateTime @default(now())
+
+  approvedBy String?   @db.ObjectId
+  approvedAt DateTime?
+
+  donorId String @db.ObjectId
+  donor   User   @relation(fields: [donorId], references: [id])
+}
+
+model SystemBalance {
+  id      String @id @default("SYSTEM") @map("_id")
+  balance Float  @default(0)
+
+  @@map("system_balance")
+}
+
+model DonationRequest {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  mosqueAdminId  String   @db.ObjectId
+
+  amount         Float
+  description    String?
+  status         String   @default("PENDING")
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  approvedBy     String?
+  rejectedBy     String?
+  approvedAt     DateTime?
+  rejectedAt     DateTime?
+  sentAmount     Float?
+
+  admin          User     @relation(fields: [mosqueAdminId], references: [id])
+}
+
+
 
 model ZakatCalculation {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId       String
+  userId       String   @db.ObjectId
   zakatType    String
   wealthType   String?
   wealthAmount Float
@@ -36,8 +81,7 @@ model ZakatCalculation {
   explanation  String
   createdAt    DateTime @default(now())
 
-  user      User       @relation(fields: [userId], references: [id])
-  donations Donation[]
+  user User @relation(fields: [userId], references: [id])
 }
 
 model Mosque {
@@ -52,68 +96,36 @@ model Mosque {
 }
 
 model Beneficiary {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  id            String  @id @default(auto()) @map("_id") @db.ObjectId
   name          String
   description   String
   gender        String
   maritalStatus String
-  familiesCount Int      @default(1)
+  familiesCount Int     @default(1)
   phone         String?
   address       String?
-  verified      Boolean  @default(true)
+  verified      Boolean @default(true)
 
-  mosqueId      String   @db.ObjectId
-  mosque        Mosque   @relation(fields: [mosqueId], references: [id])
+  mosqueId String @db.ObjectId
+  mosque   Mosque @relation(fields: [mosqueId], references: [id])
 
-  distributions Distribution[] @relation("BeneficiaryDistribution")
+  
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-
-
-
-model Distribution {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  donationId    String?
-  beneficiaryId String
-  amount        Float
-  approved      Boolean  @default(false)
-  createdAt     DateTime @default(now())
-
-  donation    Donation?   @relation(fields: [donationId], references: [id], name: "DonationDistribution")
-  beneficiary Beneficiary @relation(fields: [beneficiaryId], references: [id], name: "BeneficiaryDistribution")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Project {
-  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
   title      String
   goalAmount Float
-  raised     Float      @default(0)
-  createdAt  DateTime   @default(now())
-  donations  Donation[]
-}
-
-model Donation {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String
-  projectId   String?
-  zakatCalcId String?
-  amount      Float
-  zakatType   String
-  createdAt   DateTime @default(now())
-
-  user    User              @relation(fields: [userId], references: [id])
-  project Project?          @relation(fields: [projectId], references: [id])
-  zakat   ZakatCalculation? @relation(fields: [zakatCalcId], references: [id])
-
-  distributions Distribution[] @relation("DonationDistribution") // <-- add this
+  raised     Float    @default(0)
+  createdAt  DateTime @default(now())
 }
 
 model MosqueAdminInvite {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  email String
 
   mosqueId  String   @db.ObjectId
   token     String   @unique

@@ -15,8 +15,8 @@ import MosqueAdminsList from "./pages/MosqueAdminsList";
 import AddMosqueAdmin from "./pages/AddMosqueAdmin";
 import MosquesList from "./pages/MosquesList";
 import AddMosque from "./pages/AddMosque";
-
-// 🔐 Route guards
+import DonationDetails from "./pages/DonationDetails";
+import Donate from "./pages/donate";
 import SuperAdminRoute from "./components/SuperAdminRoute";
 import AdminRoute from "./components/AdminRoute";
 
@@ -94,6 +94,18 @@ const superAdminAddAdminRoute = createRoute({
   component: AddMosqueAdmin,
 });
 
+const donationDetailsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/donation-details",
+  component: DonationDetails,
+});
+
+const donateRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/donate",
+  component: Donate,
+});
+
 // ================= ADMIN ROUTES =================
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -117,6 +129,8 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   registerRoute,
   zakahCalculatorRoute,
+  donationDetailsRoute,
+  donateRoute,
 
   superAdminRoute.addChildren([
     superAdminDashboardRoute,

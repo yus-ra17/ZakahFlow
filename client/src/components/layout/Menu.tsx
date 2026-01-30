@@ -118,19 +118,10 @@ export default function Menu() {
         <RouterLink to="#">Donation</RouterLink>
         <ul className="shadow-box">
           <li>
-            <RouterLink to="/products">Products</RouterLink>
+            <RouterLink to="/donate">Donate</RouterLink>
           </li>
           <li>
-            <RouterLink to="/product-details">Product Details</RouterLink>
-          </li>
-          <li>
-            <RouterLink to="/cart">Cart</RouterLink>
-          </li>
-          <li>
-            <RouterLink to="/checkout">Checkout</RouterLink>
-          </li>
-          <li>
-            <RouterLink to="/wishlist">Wishlist</RouterLink>
+            <RouterLink to="/donation-details">Donation Details</RouterLink>
           </li>
           <li>
             <RouterLink to="/account">My Account</RouterLink>
