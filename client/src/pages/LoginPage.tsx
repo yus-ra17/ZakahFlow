@@ -15,18 +15,18 @@ export function LoginPage() {
     try {
       const res = await api.post("/auth/login", { email, password });
 
-      // 🔐 Save auth data
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      // ✅ Redirect based on role
-      const role = res.data.user.role;
+      const role = res.data.user.role.toUpperCase();
       if (role === "SUPERADMIN") {
         window.location.href = "/superadmin";
       } else if (role === "ADMIN") {
-        window.location.href = "/admin"; // <-- Admin Dashboard
+        window.location.href = "/admin";
+      } else if (role === "DISTRIBUTOR") {
+        window.location.href = "/distributor"; // <-- Distributor dashboard
       } else {
-        window.location.href = "/zakahcalculator"; // Default for donors
+        window.location.href = "/zakahcalculator"; // default for donors
       }
     } catch (err: any) {
       setError(err.response?.data?.error || "Login failed");

@@ -12,8 +12,10 @@ import donationRouter from "./routes/donation";
 import googleAuthRoutes from "./routes/googleAuth";
 import mosqueRoutes from "./routes/mosque";
 import adminRoutes from "./routes/admin";
-import branchAdminRoutes from "./routes/branchAdmin";
-import donationRequestRoutes from "./routes/donationRequest";
+// import branchAdminRoutes from "./routes/branchAdmin";
+import distributorRoutes from "./routes/distributor";
+import { donationRequestRoutes } from "./routes/donationRequest";
+import distributionTaskRoutes from "./routes/distributionTask";
 
 dotenv.config();
 
@@ -24,7 +26,7 @@ app.use(
   cors({
     origin: "http://localhost:3000",
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
@@ -46,8 +48,10 @@ app.use("/beneficiaries", beneficiaryRoutes);
 app.use("/beneficiary", beneficiaryRoutes);
 app.use("/mosque", mosqueRoutes);
 app.use("/admin", adminRoutes);
-app.use("/branch-admin", branchAdminRoutes);
+// app.use("/branch-admin", branchAdminRoutes);
 app.use("/donation/request", donationRequestRoutes);
+app.use("/distributor", distributorRoutes);
+app.use("/distribution-task", distributionTaskRoutes);
 
 // Health check
 

@@ -8,6 +8,7 @@ import {
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { OAuthSuccess } from "./pages/oAuthSuccess";
 import ZakahCalculatorPage from "./pages/zakahCalculator";
 
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
@@ -20,8 +21,9 @@ import Donate from "./pages/donate";
 import SuperAdminRoute from "./components/SuperAdminRoute";
 import AdminRoute from "./components/AdminRoute";
 
-// 🧑‍💼 Admin dashboard
 import AdminDashboard from "./pages/AdminDashboard";
+import DistributorDashboard from "./pages/DistributorDashboard";
+import DistributorRoute from "./components/DistributorRoute";
 
 // ================= ROOT =================
 const rootRoute = createRootRoute({
@@ -52,6 +54,29 @@ const zakahCalculatorRoute = createRoute({
   path: "/zakahcalculator",
   component: ZakahCalculatorPage,
 });
+
+const oAuthSuccessRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/oauth-success",
+  component: OAuthSuccess,
+});
+
+const distributorRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/distributor",
+  component: () => (
+    <DistributorRoute>
+      <Outlet />
+    </DistributorRoute>
+  ),
+});
+
+const distributorDashboardRoute = createRoute({
+  getParentRoute: () => distributorRoute,
+  path: "/",
+  component: DistributorDashboard,
+});
+
 
 // ================= SUPER ADMIN ROUTES =================
 const superAdminRoute = createRoute({
@@ -131,6 +156,8 @@ const routeTree = rootRoute.addChildren([
   zakahCalculatorRoute,
   donationDetailsRoute,
   donateRoute,
+  oAuthSuccessRoute,
+  distributorRoute.addChildren([distributorDashboardRoute]),
 
   superAdminRoute.addChildren([
     superAdminDashboardRoute,
@@ -141,7 +168,7 @@ const routeTree = rootRoute.addChildren([
   ]),
 
   adminRoute.addChildren([
-    adminDashboardRoute, // ✅ THIS WAS MISSING
+    adminDashboardRoute, //
   ]),
 ]);
 

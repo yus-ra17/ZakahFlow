@@ -14,6 +14,7 @@ model User {
   password String
   role     String  @default("DONOR")
   language String  @default("en")
+  isActive  Boolean  @default(true) 
 
   mosqueId  String?  @db.ObjectId
   createdAt DateTime @default(now())
@@ -22,8 +23,43 @@ model User {
   zakatCalculations ZakatCalculation[]
   donationRequests  DonationRequest[]
 
+assignedTasks   DistributionTask[] @relation("DistributorTasks")
+  approvedTasks   DistributionTask[] @relation("AdminApprovedTasks")
+
   mosque Mosque? @relation(fields: [mosqueId], references: [id])
 }
+
+
+model DistributionTask {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  mosqueId      String   @db.ObjectId
+  distributorId String   @db.ObjectId
+  beneficiaryId String   @db.ObjectId
+
+  amount        Float
+  notes         String?
+
+  status        String   @default("ASSIGNED")
+  // ASSIGNED | IN_PROGRESS | COMPLETED | REJECTED
+
+  assignedAt    DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  approvedBy    String?  @db.ObjectId
+  approvedAt    DateTime?
+  rejectionNote String?
+
+  // relations
+  mosque        Mosque      @relation(fields: [mosqueId], references: [id])
+  distributor   User        @relation("DistributorTasks", fields: [distributorId], references: [id])
+  beneficiary   Beneficiary @relation(fields: [beneficiaryId], references: [id])
+  approver      User?       @relation("AdminApprovedTasks", fields: [approvedBy], references: [id])
+}
+
+
+
+
 
 model Donation {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -93,6 +129,8 @@ model Mosque {
   beneficiaries Beneficiary[]
   users         User[] // back-relation to User
   adminInvites  MosqueAdminInvite[]
+
+   distributionTasks DistributionTask[]
 }
 
 model Beneficiary {
@@ -109,6 +147,7 @@ model Beneficiary {
   mosqueId String @db.ObjectId
   mosque   Mosque @relation(fields: [mosqueId], references: [id])
 
+distributionTasks DistributionTask[]
   
 
   createdAt DateTime @default(now())

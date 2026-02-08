@@ -74,6 +74,15 @@ router.get("/", authMiddleware, async (req: any, res: Response) => {
   try {
     const donations = await prisma.donation.findMany({
       orderBy: { createdAt: "desc" },
+      include: {
+        donor: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
     });
     res.json(donations);
   } catch (err) {
@@ -101,26 +110,32 @@ router.put("/:id/review", authMiddleware, async (req: any, res: Response) => {
 
     if (!donation) return res.status(404).json({ error: "Donation not found" });
 
-    // Update note, status, and approval info
+    // Set status based on review
+    let newStatus = "PENDING";
+    if (review === "Approved") newStatus = "APPROVED";
+    if (review === "Rejected") newStatus = "REJECTED";
+
     const updatedDonation = await prisma.donation.update({
       where: { id: req.params.id },
       data: {
         note: review.trim(),
-        status: "RECEIVED",
+        status: newStatus,
         approvedBy: req.user.userId,
         approvedAt: new Date(),
       },
     });
 
-    // Update system balance
-    await prisma.systemBalance.upsert({
-      where: { id: "SYSTEM" },
-      update: { balance: { increment: donation.amount } },
-      create: { id: "SYSTEM", balance: donation.amount },
-    });
+    // Only increment system balance if approved
+    if (newStatus === "APPROVED") {
+      await prisma.systemBalance.upsert({
+        where: { id: "SYSTEM" },
+        update: { balance: { increment: donation.amount } },
+        create: { id: "SYSTEM", balance: donation.amount },
+      });
+    }
 
     res.json({
-      message: "Donation reviewed and approved successfully",
+      message: `Donation ${newStatus.toLowerCase()} successfully`,
       donation: updatedDonation,
     });
   } catch (err) {
@@ -128,6 +143,7 @@ router.put("/:id/review", authMiddleware, async (req: any, res: Response) => {
     res.status(500).json({ error: "Failed to submit review" });
   }
 });
+
 
 // -------------------- SUPERADMIN: SYSTEM BALANCE --------------------
 router.get(

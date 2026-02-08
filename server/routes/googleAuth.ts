@@ -1,7 +1,11 @@
 // server/routes/googleAuth.ts
 import { Router, Request, Response } from "express";
 import passport from "passport";
-import { Strategy as GoogleStrategy, Profile, StrategyOptions } from "passport-google-oauth20";
+import {
+  Strategy as GoogleStrategy,
+  Profile,
+  StrategyOptions,
+} from "passport-google-oauth20";
 import { PrismaClient, User } from "@prisma/client";
 import jwt from "jsonwebtoken";
 const prisma = new PrismaClient();
@@ -35,13 +39,15 @@ passport.use(
       accessToken: string,
       refreshToken: string,
       profile: Profile,
-      done: (err: Error | null, user?: Express.User | false) => void
+      done: (err: Error | null, user?: Express.User | false) => void,
     ) => {
       try {
         const email = profile.emails?.[0]?.value;
         if (!email) return done(new Error("No email found in Google profile"));
 
-        let user: User | null = await prisma.user.findUnique({ where: { email } });
+        let user: User | null = await prisma.user.findUnique({
+          where: { email },
+        });
 
         if (!user) {
           user = await prisma.user.create({
@@ -59,15 +65,21 @@ passport.use(
       } catch (err) {
         done(err as Error);
       }
-    }
-  )
+    },
+  ),
 );
 // -------------------- Routes --------------------
-router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+router.get(
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] }),
+);
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", { session: false, failureRedirect: "/login" }),
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: "/login",
+  }),
   (req: Request, res: Response) => {
     const user = req.user as Express.User;
     if (!user) return res.status(401).json({ error: "User not found" });
@@ -75,11 +87,11 @@ router.get(
     const token = jwt.sign(
       { userId: user.id, role: user.role, mosqueId: user.mosqueId ?? null },
       process.env.JWT_SECRET!,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
 
-    res.json({ token });
-  }
+    res.redirect(`http://localhost:3000/oauth-success?token=${token}`);
+  },
 );
 
 export default router;
