@@ -2,18 +2,18 @@ import { useEffect, useState, useMemo } from "react";
 import { api } from "../api";
 import DashboardLayout from "../components/layout/DashboardLayout";
 
-interface Mosque {
+interface Mesjid {
   id: string;
   name: string;
   location: string;
   createdAt: string;
 }
 
-interface MosqueAdmin {
+interface MesjidAdmin {
   id: string;
   name?: string;
   email: string;
-  mosqueId?: string;
+  mesjidId?: string;
   createdAt: string;
 }
 
@@ -35,46 +35,46 @@ interface DonationRequest {
   description?: string;
   status: string;
   createdAt: string;
-  admin?: { name?: string; mosque?: { name?: string; location?: string } };
+  admin?: { name?: string; mesjid?: { name?: string; location?: string } };
   requesterName?: string;
-  mosqueName?: string;
-  mosqueLocation?: string;
+  mesjidName?: string;
+  mesjidLocation?: string;
 }
 
-type View = "overview" | "mosques" | "admins" | "donations" | "requests";
+type View = "overview" | "mesjids" | "admins" | "donations" | "requests";
 
 const SuperAdminDashboard = () => {
   const token = localStorage.getItem("token");
   const [view, setView] = useState<View>("overview");
-  const [mosques, setMosques] = useState<Mosque[]>([]);
-  const [admins, setAdmins] = useState<MosqueAdmin[]>([]);
+  const [mesjids, setMesjids] = useState<Mesjid[]>([]);
+  const [admins, setAdmins] = useState<MesjidAdmin[]>([]);
   const [donations, setDonations] = useState<Donation[]>([]);
   const [requests, setRequests] = useState<DonationRequest[]>([]);
   const [systemBalance, setSystemBalance] = useState<number>(0);
 
   // Modals
-  const [showAddMosqueModal, setShowAddMosqueModal] = useState(false);
+  const [showAddMesjidModal, setShowAddMesjidModal] = useState(false);
   const [showAddAdminModal, setShowAddAdminModal] = useState(false);
 
-  const mosqueNameMap = useMemo(() => {
+  const mesjidNameMap = useMemo(() => {
     const map = new Map<string, string>();
-    mosques.forEach((m) => map.set(m.id, m.name));
+    mesjids.forEach((m) => map.set(m.id, m.name));
     return map;
-  }, [mosques]);
+  }, [mesjids]);
 
   // Fetch functions
-  const fetchMosques = async () => {
+  const fetchMesjids = async () => {
     try {
-      const res = await api.get<Mosque[]>("/mosque", {
+      const res = await api.get<Mesjid[]>("/mesjid", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setMosques(res.data);
+      setMesjids(res.data);
     } catch (err) { console.error(err); }
   };
 
   const fetchAdmins = async () => {
     try {
-      const res = await api.get<MosqueAdmin[]>("/admin", {
+      const res = await api.get<MesjidAdmin[]>("/admin", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setAdmins(res.data);
@@ -108,8 +108,8 @@ const SuperAdminDashboard = () => {
       const response = res.data.map((r: any) => ({
         ...r,
         requesterName: r.admin?.name || "Unknown",
-        mosqueName: r.admin?.mosque?.name || "Unknown",
-        mosqueLocation: r.admin?.mosque?.location || "Unknown",
+        mesjidName: r.admin?.mesjid?.name || "Unknown",
+        mesjidLocation: r.admin?.mesjid?.location || "Unknown",
       }));
       setRequests(response);
     } catch (err) { console.error(err); }
@@ -126,7 +126,7 @@ const SuperAdminDashboard = () => {
 
   useEffect(() => {
     fetchSystemBalance();
-    fetchMosques();
+    fetchMesjids();
     fetchAdmins();
   }, []);
 
@@ -178,15 +178,15 @@ const SuperAdminDashboard = () => {
       icon: <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>,
     },
     {
-      label: "Mosques",
-      active: view === "mosques",
-      onClick: () => { setView("mosques"); fetchMosques(); },
+      label: "Mesjids",
+      active: view === "mesjids",
+      onClick: () => { setView("mesjids"); fetchMesjids(); },
       icon: <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
     },
     {
-      label: "Mosque Admins",
+      label: "Mesjid Admins",
       active: view === "admins",
-      onClick: () => { setView("admins"); fetchAdmins(); fetchMosques(); },
+      onClick: () => { setView("admins"); fetchAdmins(); fetchMesjids(); },
       icon: <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>,
     },
     {
@@ -231,8 +231,8 @@ const SuperAdminDashboard = () => {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Mosques</p>
-                  <p className="text-2xl font-bold text-gray-900">{mosques.length}</p>
+                  <p className="text-sm text-gray-500">Mesjids</p>
+                  <p className="text-2xl font-bold text-gray-900">{mesjids.length}</p>
                 </div>
               </div>
             </div>
@@ -268,10 +268,10 @@ const SuperAdminDashboard = () => {
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="flex flex-wrap gap-3">
-              <button onClick={() => { setShowAddMosqueModal(true); fetchMosques(); }} className="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors">
-                + Add Mosque
+              <button onClick={() => { setShowAddMesjidModal(true); fetchMesjids(); }} className="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors">
+                + Add Mesjid
               </button>
-              <button onClick={() => { setShowAddAdminModal(true); fetchMosques(); }} className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+              <button onClick={() => { setShowAddAdminModal(true); fetchMesjids(); }} className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
                 + Add Admin
               </button>
               <button onClick={() => { setView("donations"); fetchDonations(); }} className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors">
@@ -282,13 +282,13 @@ const SuperAdminDashboard = () => {
         </div>
       )}
 
-      {/* Mosques View */}
-      {view === "mosques" && (
+      {/* Mesjids View */}
+      {view === "mesjids" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Mosques</h2>
-            <button onClick={() => setShowAddMosqueModal(true)} className="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700">
-              + Add Mosque
+            <h2 className="text-lg font-semibold text-gray-900">Mesjids</h2>
+            <button onClick={() => setShowAddMesjidModal(true)} className="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700">
+              + Add Mesjid
             </button>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -301,15 +301,15 @@ const SuperAdminDashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {mosques.map((m) => (
+                {mesjids.map((m) => (
                   <tr key={m.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{m.name}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{m.location}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{new Date(m.createdAt).toLocaleDateString()}</td>
                   </tr>
                 ))}
-                {mosques.length === 0 && (
-                  <tr><td colSpan={3} className="px-6 py-8 text-center text-sm text-gray-500">No mosques found</td></tr>
+                {mesjids.length === 0 && (
+                  <tr><td colSpan={3} className="px-6 py-8 text-center text-sm text-gray-500">No mesjids found</td></tr>
                 )}
               </tbody>
             </table>
@@ -321,7 +321,7 @@ const SuperAdminDashboard = () => {
       {view === "admins" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Mosque Admins</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Mesjid Admins</h2>
             <button onClick={() => setShowAddAdminModal(true)} className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
               + Add Admin
             </button>
@@ -332,7 +332,7 @@ const SuperAdminDashboard = () => {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mosque</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mesjid</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
                 </tr>
               </thead>
@@ -341,7 +341,7 @@ const SuperAdminDashboard = () => {
                   <tr key={a.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{a.name || "—"}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{a.email}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{mosqueNameMap.get(a.mosqueId || "") || "—"}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{mesjidNameMap.get(a.mesjidId || "") || "—"}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{new Date(a.createdAt).toLocaleDateString()}</td>
                   </tr>
                 ))}
@@ -406,13 +406,13 @@ const SuperAdminDashboard = () => {
       {/* Requests View */}
       {view === "requests" && (
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">Mosque Donation Requests</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Mesjid Donation Requests</h2>
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Requester</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mosque</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mesjid</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
@@ -423,7 +423,7 @@ const SuperAdminDashboard = () => {
                 {requests.map((r) => (
                   <tr key={r.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{r.requesterName}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{r.mosqueName}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{r.mesjidName}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{r.amount} Birr</td>
                     <td className="px-6 py-4">
                       <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
@@ -452,29 +452,29 @@ const SuperAdminDashboard = () => {
         </div>
       )}
 
-      {/* Add Mosque Modal */}
-      {showAddMosqueModal && (
+      {/* Add Mesjid Modal */}
+      {showAddMesjidModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Mosque</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Mesjid</h3>
             <form onSubmit={async (e) => {
               e.preventDefault();
               const form = e.currentTarget;
               const name = (form.elements.namedItem("name") as HTMLInputElement).value;
               const location = (form.elements.namedItem("location") as HTMLInputElement).value;
               try {
-                await api.post("/mosque", { name, location }, { headers: { Authorization: `Bearer ${token}` } });
-                fetchMosques();
-                setShowAddMosqueModal(false);
-              } catch (err) { alert("Failed to add mosque"); }
+                await api.post("/mesjid", { name, location }, { headers: { Authorization: `Bearer ${token}` } });
+                fetchMesjids();
+                setShowAddMesjidModal(false);
+              } catch (err) { alert("Failed to add mesjid"); }
             }}>
               <div className="space-y-4">
-                <input name="name" placeholder="Mosque Name" required className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none" />
+                <input name="name" placeholder="Mesjid Name" required className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none" />
                 <input name="location" placeholder="Location" required className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none" />
               </div>
               <div className="flex justify-end gap-3 mt-6">
-                <button type="button" onClick={() => setShowAddMosqueModal(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
-                <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700">Add Mosque</button>
+                <button type="button" onClick={() => setShowAddMesjidModal(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
+                <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700">Add Mesjid</button>
               </div>
             </form>
           </div>
@@ -485,15 +485,15 @@ const SuperAdminDashboard = () => {
       {showAddAdminModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Mosque Admin</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Mesjid Admin</h3>
             <form onSubmit={async (e) => {
               e.preventDefault();
               const form = e.currentTarget;
               const name = (form.elements.namedItem("name") as HTMLInputElement).value;
               const email = (form.elements.namedItem("email") as HTMLInputElement).value;
-              const mosqueId = (form.elements.namedItem("mosqueId") as HTMLSelectElement).value;
+              const mesjidId = (form.elements.namedItem("mesjidId") as HTMLSelectElement).value;
               try {
-                await api.post("/admin", { name, email, mosqueId }, { headers: { Authorization: `Bearer ${token}` } });
+                await api.post("/admin", { name, email, mesjidId }, { headers: { Authorization: `Bearer ${token}` } });
                 fetchAdmins();
                 setShowAddAdminModal(false);
               } catch (err) { alert("Failed to add admin"); }
@@ -501,9 +501,9 @@ const SuperAdminDashboard = () => {
               <div className="space-y-4">
                 <input name="name" placeholder="Name" required className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none" />
                 <input name="email" type="email" placeholder="Email" required className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none" />
-                <select name="mosqueId" required className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
-                  <option value="">Select Mosque</option>
-                  {mosques.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                <select name="mesjidId" required className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
+                  <option value="">Select Mesjid</option>
+                  {mesjids.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </select>
               </div>
               <div className="flex justify-end gap-3 mt-6">

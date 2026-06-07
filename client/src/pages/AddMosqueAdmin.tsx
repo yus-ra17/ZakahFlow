@@ -1,21 +1,21 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 
-interface Mosque {
+interface Mesjid {
   id: string;
   name: string;
 }
 
-const AddMosqueAdmin = () => {
+const AddMesjidAdmin = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [mosqueId, setMosqueId] = useState("");
-  const [mosques, setMosques] = useState<Mosque[]>([]);
+  const [mesjidId, setMesjidId] = useState("");
+  const [mesjids, setMesjids] = useState<Mesjid[]>([]);
 
   useEffect(() => {
-    api.get<Mosque[]>("/mosques").then((res) => {
-      setMosques(res.data);
+    api.get<Mesjid[]>("/mesjids").then((res) => {
+      setMesjids(res.data);
     });
   }, []);
 
@@ -26,15 +26,15 @@ const AddMosqueAdmin = () => {
       name,
       email,
       password,
-      mosqueId,
+      mesjidId,
     });
 
-    alert("Mosque admin created");
+    alert("Mesjid admin created");
   };
 
   return (
     <div style={{ padding: 20 }}>
-      <h2>Add Mosque Admin</h2>
+      <h2>Add Mesjid Admin</h2>
 
       <form onSubmit={handleSubmit}>
         <input
@@ -66,12 +66,12 @@ const AddMosqueAdmin = () => {
         <br />
 
         <select
-          value={mosqueId}
-          onChange={(e) => setMosqueId(e.target.value)}
+          value={mesjidId}
+          onChange={(e) => setMesjidId(e.target.value)}
           required
         >
-          <option value="">Select Mosque</option>
-          {mosques.map((m) => (
+          <option value="">Select Mesjid</option>
+          {mesjids.map((m) => (
             <option key={m.id} value={m.id}>
               {m.name}
             </option>
@@ -86,4 +86,4 @@ const AddMosqueAdmin = () => {
   );
 };
 
-export default AddMosqueAdmin;
+export default AddMesjidAdmin;

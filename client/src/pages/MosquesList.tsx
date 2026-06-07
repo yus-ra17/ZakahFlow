@@ -1,37 +1,37 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 
-interface Mosque {
+interface Mesjid {
   id: string;
   name: string;
   location: string;
   createdAt: string;
 }
 
-const MosquesList = () => {
-  const [mosques, setMosques] = useState<Mosque[]>([]);
+const MesjidsList = () => {
+  const [mesjids, setMesjids] = useState<Mesjid[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchMosques = async () => {
+    const fetchMesjids = async () => {
       try {
-        const res = await api.get<Mosque[]>("/mosque");
-        setMosques(res.data);
+        const res = await api.get<Mesjid[]>("/mesjid");
+        setMesjids(res.data);
       } catch {
-        alert("Failed to fetch mosques");
+        alert("Failed to fetch mesjids");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMosques();
+    fetchMesjids();
   }, []);
 
   if (loading) return <p>Loading...</p>;
 
   return (
     <div style={{ padding: 20 }}>
-      <h2>Mosques</h2>
+      <h2>Mesjids</h2>
 
       <table border={1} cellPadding={10}>
         <thead>
@@ -42,7 +42,7 @@ const MosquesList = () => {
           </tr>
         </thead>
         <tbody>
-          {mosques.map((m) => (
+          {mesjids.map((m) => (
             <tr key={m.id}>
               <td>{m.name}</td>
               <td>{m.location}</td>
@@ -55,4 +55,4 @@ const MosquesList = () => {
   );
 };
 
-export default MosquesList;
+export default MesjidsList;

@@ -559,7 +559,7 @@ export default function ZakahCalculatorPage() {
             </div>
             <div>
               <h4 className="text-white font-semibold mb-4">About</h4>
-              <p className="text-sm leading-relaxed">ZakahFlow helps mosques and communities manage Zakah distribution with full transparency and accountability.</p>
+              <p className="text-sm leading-relaxed">ZakahFlow helps mesjids and communities manage Zakah distribution with full transparency and accountability.</p>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-10 pt-6 text-center text-sm">

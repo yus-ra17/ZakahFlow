@@ -1,33 +1,33 @@
-// src/pages/MosqueAdminsList.tsx
+// src/pages/MesjidAdminsList.tsx
 
 import { useEffect, useState } from "react";
 import { api } from "../api";
 
-// Remove the import of MosqueAdmin at runtime
-// import { MosqueAdmin } from "../types/admin"; // ❌ remove this
+// Remove the import of MesjidAdmin at runtime
+// import { MesjidAdmin } from "../types/admin"; // ❌ remove this
 
 // You can still declare the type locally in the file for TS type checking
-interface MosqueAdmin {
+interface MesjidAdmin {
   id: string;
   name?: string;
   email: string;
-  mosqueId?: string;
+  mesjidId?: string;
   createdAt: string;
 }
 
-const MosqueAdminsList = () => {
-  const [admins, setAdmins] = useState<MosqueAdmin[]>([]);
+const MesjidAdminsList = () => {
+  const [admins, setAdmins] = useState<MesjidAdmin[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAdmins = async () => {
       try {
-        const res = await api.get<{ admins: MosqueAdmin[] }>("/admins");
+        const res = await api.get<{ admins: MesjidAdmin[] }>("/admins");
         setAdmins(res.data.admins);
       } catch (err: any) {
         console.error(err);
-        setError(err?.response?.data?.error || "Failed to fetch mosque admins");
+        setError(err?.response?.data?.error || "Failed to fetch mesjid admins");
       } finally {
         setLoading(false);
       }
@@ -41,17 +41,17 @@ const MosqueAdminsList = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2>Mosque Admins</h2>
+      <h2>Mesjid Admins</h2>
 
       {admins.length === 0 ? (
-        <p>No mosque admins found.</p>
+        <p>No mesjid admins found.</p>
       ) : (
         <table border={1} cellPadding={10}>
           <thead>
             <tr>
               <th>Name</th>
               <th>Email</th>
-              <th>Mosque ID</th>
+              <th>Mesjid ID</th>
               <th>Created</th>
             </tr>
           </thead>
@@ -60,7 +60,7 @@ const MosqueAdminsList = () => {
               <tr key={admin.id}>
                 <td>{admin.name || "—"}</td>
                 <td>{admin.email}</td>
-                <td>{admin.mosqueId || "Not Assigned"}</td>
+                <td>{admin.mesjidId || "Not Assigned"}</td>
                 <td>{new Date(admin.createdAt).toLocaleDateString()}</td>
               </tr>
             ))}
@@ -71,4 +71,4 @@ const MosqueAdminsList = () => {
   );
 };
 
-export default MosqueAdminsList;
+export default MesjidAdminsList;

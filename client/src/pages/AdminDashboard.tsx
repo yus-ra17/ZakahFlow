@@ -127,7 +127,7 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <DashboardLayout title="Mosque Admin Dashboard" navItems={navItems}>
+    <DashboardLayout title="Mesjid Admin Dashboard" navItems={navItems}>
       {/* Balance card */}
       <div className="mb-6 bg-white rounded-xl border border-gray-200 p-6 flex items-center justify-between">
         <div>

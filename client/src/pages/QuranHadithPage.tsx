@@ -407,7 +407,7 @@ function SadaqahSection() {
               "Speaking a good word",
               "Teaching beneficial knowledge",
               "Planting a tree or providing water",
-              "Sadaqah Jariyah (building a well or mosque)",
+              "Sadaqah Jariyah (building a well or mesjid)",
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-3">
                 <span className="text-amber-500 mt-0.5">•</span>

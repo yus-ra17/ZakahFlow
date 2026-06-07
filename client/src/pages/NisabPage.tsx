@@ -300,7 +300,7 @@ export default function NisabPage() {
             <div>
               <h4 className="text-white font-semibold mb-4">About</h4>
               <p className="text-sm leading-relaxed">
-                ZakahFlow helps mosques and communities manage Zakah distribution 
+                ZakahFlow helps mesjids and communities manage Zakah distribution 
                 with full transparency and accountability.
               </p>
             </div>

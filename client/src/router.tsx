@@ -14,10 +14,10 @@ import NisabPage from "./pages/NisabPage";
 import QuranHadithPage from "./pages/QuranHadithPage";
 
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
-import MosqueAdminsList from "./pages/MosqueAdminsList";
-import AddMosqueAdmin from "./pages/AddMosqueAdmin";
-import MosquesList from "./pages/MosquesList";
-import AddMosque from "./pages/AddMosque";
+import MesjidAdminsList from "./pages/MesjidAdminsList";
+import AddMesjidAdmin from "./pages/AddMesjidAdmin";
+import MesjidsList from "./pages/MesjidsList";
+import AddMesjid from "./pages/AddMesjid";
 import DonationDetails from "./pages/DonationDetails";
 import SuperAdminRoute from "./components/SuperAdminRoute";
 import AdminRoute from "./components/AdminRoute";
@@ -108,28 +108,28 @@ const superAdminDashboardRoute = createRoute({
   component: SuperAdminDashboard,
 });
 
-const superAdminMosquesRoute = createRoute({
+const superAdminMesjidsRoute = createRoute({
   getParentRoute: () => superAdminRoute,
-  path: "/mosques",
-  component: MosquesList,
+  path: "/mesjids",
+  component: MesjidsList,
 });
 
-const superAdminAddMosqueRoute = createRoute({
+const superAdminAddMesjidRoute = createRoute({
   getParentRoute: () => superAdminRoute,
-  path: "/add-mosque",
-  component: AddMosque,
+  path: "/add-mesjid",
+  component: AddMesjid,
 });
 
 const superAdminAdminsRoute = createRoute({
   getParentRoute: () => superAdminRoute,
   path: "/admins",
-  component: MosqueAdminsList,
+  component: MesjidAdminsList,
 });
 
 const superAdminAddAdminRoute = createRoute({
   getParentRoute: () => superAdminRoute,
   path: "/add-admin",
-  component: AddMosqueAdmin,
+  component: AddMesjidAdmin,
 });
 
 const donationDetailsRoute = createRoute({
@@ -169,8 +169,8 @@ const routeTree = rootRoute.addChildren([
 
   superAdminRoute.addChildren([
     superAdminDashboardRoute,
-    superAdminMosquesRoute,
-    superAdminAddMosqueRoute,
+    superAdminMesjidsRoute,
+    superAdminAddMesjidRoute,
     superAdminAdminsRoute,
     superAdminAddAdminRoute,
   ]),

@@ -95,7 +95,7 @@ export function HomePage() {
             {[
               { icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>, title: "Calculate", description: "Use our Zakah calculator to determine your obligation based on gold, silver, livestock, crops, and business assets." },
               { icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>, title: "Donate", description: "Submit your Zakah donation securely. Track your contributions and see the impact of your generosity." },
-              { icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>, title: "Distribute", description: "Zakah reaches verified beneficiaries through mosque administrators and trusted distributors." },
+              { icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>, title: "Distribute", description: "Zakah reaches verified beneficiaries through mesjid administrators and trusted distributors." },
             ].map((f, i) => (
               <div key={i} className="p-8 rounded-2xl border border-gray-100 hover:border-amber-200 hover:shadow-xl transition-all group hover-lift animate-fade-in-up">
                 <div className="w-14 h-14 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 mb-5 group-hover:bg-amber-600 group-hover:text-white transition-colors">{f.icon}</div>
@@ -258,7 +258,7 @@ export function HomePage() {
             </div>
             <div>
               <h4 className="text-white font-semibold mb-4">About</h4>
-              <p className="text-sm leading-relaxed">ZakahFlow helps mosques and communities manage Zakah distribution with full transparency and accountability.</p>
+              <p className="text-sm leading-relaxed">ZakahFlow helps mesjids and communities manage Zakah distribution with full transparency and accountability.</p>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-10 pt-6 text-center text-sm">
