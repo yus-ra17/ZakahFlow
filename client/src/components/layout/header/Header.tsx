@@ -152,7 +152,6 @@ export default function Header() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">{user.name || "User"}</p>
-                    <p className="text-xs text-gray-500">{user.role}</p>
                   </div>
                 </div>
                 <button onClick={handleLogout} className="w-full px-3 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 text-left">Sign Out</button>

@@ -68,9 +68,6 @@ export default function DashboardLayout({ children, title, navItems }: Dashboard
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{user.name || "User"}</p>
-                  <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${getRoleBadgeColor(user.role)}`}>
-                    {user.role}
-                  </span>
                 </div>
               </div>
             </div>
