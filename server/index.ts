@@ -9,7 +9,6 @@ import businessZakatRouter from "./routes/businessZakat";
 import rikazZakatRouter from "./routes/rikazZakat";
 import beneficiaryRoutes from "./routes/beneficiary";
 import donationRouter from "./routes/donation";
-import googleAuthRoutes from "./routes/googleAuth";
 import mosqueRoutes from "./routes/mosque";
 import adminRoutes from "./routes/admin";
 // import branchAdminRoutes from "./routes/branchAdmin";
@@ -37,7 +36,6 @@ app.use(express.json());
 /* -------------------------------------------------- */
 
 app.use("/auth", authRoutes);
-app.use("/auth", googleAuthRoutes);
 app.use("/donation", donationRouter);
 app.use("/metal", zakatRoutes);
 app.use("/livestock", livestockZakatRouter);
