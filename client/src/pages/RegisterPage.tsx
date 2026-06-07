@@ -1,118 +1,73 @@
-"use client";
-
 import { useState } from "react";
 import { api } from "../api";
 import { Link as RouterLink } from "@tanstack/react-router";
-import styles from "./LoginPage.module.css"; // Reuse your login page styles
 
 export function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    // Trim inputs and validate
-    if (!name.trim() || !email.trim() || !password) {
-      setError("All fields are required.");
-      return;
-    }
-
+    if (!name.trim() || !email.trim() || !password) { setError("All fields are required."); return; }
+    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    setLoading(true);
+    setError("");
     try {
-      // Connect to backend /auth/register
-      await api.post("/auth/register", {
-        name: name.trim(),
-        email: email.trim(),
-        password,
-      });
-
-      alert("Account created successfully. Please login.");
-      window.location.href = "/login"; // Redirect to login page
+      await api.post("/auth/register", { name: name.trim(), email: email.trim(), password });
+      window.location.href = "/login";
     } catch (err: any) {
-      // Show backend error or fallback
-      setError(err.response?.data?.error || "Registration failed");
-    }
+      if (err.code === "ERR_NETWORK") setError("Cannot connect to server. Please try again later.");
+      else setError(err.response?.data?.error || "Registration failed. Email may already exist.");
+    } finally { setLoading(false); }
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.middleCard}>
-        {/* LEFT IMAGE */}
-        <div className={styles.left}>
-          <img
-            src="/assets/images/download (13).jpeg"
-            className={styles.sideImage}
-            alt="Register"
-          />
+    <div className="fixed inset-0 bg-[radial-gradient(circle_at_top,#2a2416,#0f0c05)] flex items-center justify-center font-[Poppins,sans-serif] p-4">
+      <div className="w-full max-w-[1100px] h-auto md:h-[568px] flex flex-col md:flex-row rounded-[30px] overflow-hidden bg-gradient-to-br from-[rgba(255,215,120,0.08)] via-[rgba(255,215,120,0.03)] to-[rgba(156,140,102,0.08)] backdrop-blur-[18px] border border-[rgba(255,215,120,0.25)] shadow-[0_35px_90px_rgba(0,0,0,0.65)]">
+        {/* Left - Image */}
+        <div className="hidden md:block flex-[1.1] relative">
+          <img src="/assets/images/download (34).jpg" alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[rgba(212,175,55,0.15)] to-[rgba(102,73,22,0.6)]"></div>
+          <div className="absolute bottom-12 left-8 right-8">
+            <h2 className="text-[1.9rem] text-[#ffd166] font-bold mb-2 drop-shadow-lg">Join ZakahFlow</h2>
+            <p className="text-[1.1rem] text-[#f8f6f4] font-semibold tracking-wide">Create your account and start your Zakah journey</p>
+          </div>
         </div>
 
-        {/* RIGHT FORM */}
-        <form
-          className={styles.formBox}
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleRegister();
-          }}
-        >
-          {/* Register Title */}
-          <h2 className={styles.CreateTitle}>Create Account</h2>
+        {/* Right - Form */}
+        <div className="flex-[0.9] p-8 md:p-14 flex flex-col justify-center bg-[rgba(20,16,6,0.92)]">
+          <h1 className="text-[2rem] md:text-[2.4rem] text-[#f5d77a] font-bold mb-8 text-center">Create Account</h1>
 
-          {/* Error */}
-          {error && <p className={styles.error}>{error}</p>}
+          {error && <p className="text-[#ff9b9b] mb-4 text-sm text-center">{error}</p>}
 
-          {/* Name */}
-          <div className={styles.inputWrapper}>
-            <input
-              className={styles.inputField}
-              type="text"
-              placeholder="Full Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
+          <form onSubmit={(e) => { e.preventDefault(); handleRegister(); }} className="space-y-4 max-w-[380px] mx-auto w-full">
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required
+              className="w-full px-4 py-3 rounded-xl border border-[rgba(255,215,120,0.22)] bg-[rgba(255,255,255,0.06)] text-white text-sm focus:outline-none focus:border-[#f5d77a] placeholder:text-gray-500 transition-colors" placeholder="Full Name" />
+            
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
+              className="w-full px-4 py-3 rounded-xl border border-[rgba(255,215,120,0.22)] bg-[rgba(255,255,255,0.06)] text-white text-sm focus:outline-none focus:border-[#f5d77a] placeholder:text-gray-500 transition-colors" placeholder="Email" />
+            
+            <div className="relative">
+              <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required
+                className="w-full px-4 py-3 rounded-xl border border-[rgba(255,215,120,0.22)] bg-[rgba(255,255,255,0.06)] text-white text-sm focus:outline-none focus:border-[#f5d77a] placeholder:text-gray-500 transition-colors" placeholder="Password (min 6 characters)" />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[rgba(255,215,120,0.9)] text-sm">
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
 
-          {/* Email */}
-          <div className={styles.inputWrapper}>
-            <input
-              className={styles.inputField}
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
+            <button type="submit" disabled={loading}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#f5d77a] to-[#cfa94a] text-black font-bold text-sm hover:translate-y-[-2px] hover:shadow-[0_8px_20px_rgba(245,215,122,0.5)] transition-all disabled:opacity-50">
+              {loading ? "Creating account..." : "Create Account"}
+            </button>
+          </form>
 
-          {/* Password */}
-          <div className={styles.inputWrapper}>
-            <input
-              className={styles.inputField}
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          {/* Register Button */}
-          <button
-            className={styles.button}
-            type="submit"
-            style={{ fontWeight: 700 }}
-          >
-            Register
-          </button>
-
-          {/* Link to Login */}
-          <p className={styles.registerText} style={{ marginTop: "1rem" }}>
-            Already have an account?
-            <RouterLink to="/login" className={styles.registerLink}>
-              Login
-            </RouterLink>
+          <p className="mt-6 text-center text-[rgba(255,235,180,0.75)] text-sm">
+            Already have an account? <RouterLink to="/login" className="text-[#f5d77a] font-semibold ml-1">Sign In</RouterLink>
           </p>
-        </form>
+        </div>
       </div>
     </div>
   );

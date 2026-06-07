@@ -3,111 +3,102 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id       String  @id @default(auto()) @map("_id") @db.ObjectId
-  name     String?
-  email    String  @unique
-  password String
-  role     String  @default("DONOR")
-  language String  @default("en")
-  isActive  Boolean  @default(true) 
+  id        String   @id @default(uuid())
+  name      String?
+  email     String   @unique
+  password  String
+  role      String   @default("DONOR")
+  language  String   @default("en")
+  isActive  Boolean  @default(true)
 
-  mosqueId  String?  @db.ObjectId
+  mosqueId  String?
   createdAt DateTime @default(now())
 
   donations         Donation[]
   zakatCalculations ZakatCalculation[]
   donationRequests  DonationRequest[]
 
-assignedTasks   DistributionTask[] @relation("DistributorTasks")
-  approvedTasks   DistributionTask[] @relation("AdminApprovedTasks")
+  assignedTasks DistributionTask[] @relation("DistributorTasks")
+  approvedTasks DistributionTask[] @relation("AdminApprovedTasks")
 
   mosque Mosque? @relation(fields: [mosqueId], references: [id])
 }
 
-
 model DistributionTask {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  id            String   @id @default(uuid())
 
-  mosqueId      String   @db.ObjectId
-  distributorId String   @db.ObjectId
-  beneficiaryId String   @db.ObjectId
+  mosqueId      String
+  distributorId String
+  beneficiaryId String
 
   amount        Float
   notes         String?
 
   status        String   @default("ASSIGNED")
-  // ASSIGNED | IN_PROGRESS | COMPLETED | REJECTED
 
   assignedAt    DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  approvedBy    String?  @db.ObjectId
+  approvedBy    String?
   approvedAt    DateTime?
   rejectionNote String?
 
-  // relations
-  mosque        Mosque      @relation(fields: [mosqueId], references: [id])
-  distributor   User        @relation("DistributorTasks", fields: [distributorId], references: [id])
-  beneficiary   Beneficiary @relation(fields: [beneficiaryId], references: [id])
-  approver      User?       @relation("AdminApprovedTasks", fields: [approvedBy], references: [id])
+  mosque      Mosque      @relation(fields: [mosqueId], references: [id])
+  distributor User        @relation("DistributorTasks", fields: [distributorId], references: [id])
+  beneficiary Beneficiary @relation(fields: [beneficiaryId], references: [id])
+  approver    User?       @relation("AdminApprovedTasks", fields: [approvedBy], references: [id])
 }
 
-
-
-
-
 model Donation {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(uuid())
   amount    Float
   type      String?
   note      String?
-  status    String   @default("PENDING") // PENDING | RECEIVED
+  status    String   @default("PENDING")
   createdAt DateTime @default(now())
 
-  approvedBy String?   @db.ObjectId
+  approvedBy String?
   approvedAt DateTime?
 
-  donorId String @db.ObjectId
+  donorId String
   donor   User   @relation(fields: [donorId], references: [id])
 }
 
 model SystemBalance {
-  id      String @id @default("SYSTEM") @map("_id")
+  id      String @id @default("SYSTEM")
   balance Float  @default(0)
 
   @@map("system_balance")
 }
 
 model DonationRequest {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  mosqueAdminId  String   @db.ObjectId
+  id            String   @id @default(uuid())
+  mosqueAdminId String
 
-  amount         Float
-  description    String?
-  status         String   @default("PENDING")
+  amount      Float
+  description String?
+  status      String   @default("PENDING")
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  approvedBy     String?
-  rejectedBy     String?
-  approvedAt     DateTime?
-  rejectedAt     DateTime?
-  sentAmount     Float?
+  approvedBy String?
+  rejectedBy String?
+  approvedAt DateTime?
+  rejectedAt DateTime?
+  sentAmount Float?
 
-  admin          User     @relation(fields: [mosqueAdminId], references: [id])
+  admin User @relation(fields: [mosqueAdminId], references: [id])
 }
 
-
-
 model ZakatCalculation {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId       String   @db.ObjectId
+  id           String   @id @default(uuid())
+  userId       String
   zakatType    String
   wealthType   String?
   wealthAmount Float
@@ -121,20 +112,19 @@ model ZakatCalculation {
 }
 
 model Mosque {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(uuid())
   name      String
   location  String
   createdAt DateTime @default(now())
 
-  beneficiaries Beneficiary[]
-  users         User[] // back-relation to User
-  adminInvites  MosqueAdminInvite[]
-
-   distributionTasks DistributionTask[]
+  beneficiaries     Beneficiary[]
+  users             User[]
+  adminInvites      MosqueAdminInvite[]
+  distributionTasks DistributionTask[]
 }
 
 model Beneficiary {
-  id            String  @id @default(auto()) @map("_id") @db.ObjectId
+  id            String  @id @default(uuid())
   name          String
   description   String
   gender        String
@@ -144,18 +134,17 @@ model Beneficiary {
   address       String?
   verified      Boolean @default(true)
 
-  mosqueId String @db.ObjectId
+  mosqueId String
   mosque   Mosque @relation(fields: [mosqueId], references: [id])
 
-distributionTasks DistributionTask[]
-  
+  distributionTasks DistributionTask[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Project {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  id         String   @id @default(uuid())
   title      String
   goalAmount Float
   raised     Float    @default(0)
@@ -163,10 +152,10 @@ model Project {
 }
 
 model MosqueAdminInvite {
-  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  id    String @id @default(uuid())
   email String
 
-  mosqueId  String   @db.ObjectId
+  mosqueId  String
   token     String   @unique
   role      String   @default("MOSQUE_ADMIN")
   status    String   @default("PENDING")

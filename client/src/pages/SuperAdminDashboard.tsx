@@ -1,8 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { api } from "../api";
-import Header3 from "../components/layout/header/Header3";
-import Footer3 from "../components/layout/footer/Footer3";
-import styles from "./SuperAdminDashboard.module.css";
+import DashboardLayout from "../components/layout/DashboardLayout";
 
 interface Mosque {
   id: string;
@@ -26,107 +24,37 @@ interface Donation {
   note?: string;
   status: string;
   donorId: string;
-  donor?: {
-    name?: string;
-    email?: string;
-  };
+  donor?: { name?: string; email?: string };
   donorName?: string;
   createdAt: string;
 }
 
-interface MosqueRequest {
+interface DonationRequest {
   id: string;
-  requesterName: string;
-  mosqueName: string;
-  mosqueLocation: string;
   amount: number;
+  description?: string;
+  status: string;
   createdAt: string;
+  admin?: { name?: string; mosque?: { name?: string; location?: string } };
+  requesterName?: string;
+  mosqueName?: string;
+  mosqueLocation?: string;
 }
+
+type View = "overview" | "mosques" | "admins" | "donations" | "requests";
 
 const SuperAdminDashboard = () => {
   const token = localStorage.getItem("token");
-
-  const [superAdmin, setSuperAdmin] = useState<{
-    name: string;
-    role: string;
-  } | null>(null);
+  const [view, setView] = useState<View>("overview");
   const [mosques, setMosques] = useState<Mosque[]>([]);
   const [admins, setAdmins] = useState<MosqueAdmin[]>([]);
   const [donations, setDonations] = useState<Donation[]>([]);
-  const [requests, setRequests] = useState<MosqueRequest[]>([]);
+  const [requests, setRequests] = useState<DonationRequest[]>([]);
   const [systemBalance, setSystemBalance] = useState<number>(0);
 
-  // Modal & Table visibility
-  const [showAddModal, setShowAddModal] = useState(false);
+  // Modals
+  const [showAddMosqueModal, setShowAddMosqueModal] = useState(false);
   const [showAddAdminModal, setShowAddAdminModal] = useState(false);
-  const [showMosquesList, setShowMosquesList] = useState(false);
-  const [showAdminsList, setShowAdminsList] = useState(false);
-  const [showDonationsList, setShowDonationsList] = useState(false);
-  const [showRequestsList, setShowRequestsList] = useState(false);
-
-  const [currentRequest, setCurrentRequest] = useState<MosqueRequest | null>(
-    null,
-  );
-  const [approveAmount, setApproveAmount] = useState<number | null>();
-  const [approveDescription, setApproveDescription] = useState("");
-  const [rejectReason, setRejectReason] = useState("");
-  const [sendDonationAmount, setSendDonationAmount] = useState(0);
-  const [sendDonationDescription, setSendDonationDescription] = useState("");
-  const [currentDonation, setCurrentDonation] = useState<Donation | null>(null);
-  const [donationReview, setDonationReview] = useState("");
-  const [showDonationApproveModal, setShowDonationApproveModal] =
-    useState(false);
-  const [showDonationRejectModal, setShowDonationRejectModal] = useState(false);
-  const [showRejectModal, setShowRejectModal] = useState(false);
-
-  const handleApproveDonation = async () => {
-    if (!currentDonation) return;
-    try {
-      console.log({ id: currentDonation.id });
-      await api.put(
-        `/donation/${currentDonation.id}/review`,
-        { review: "Approved" },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      fetchDonations();
-      fetchSystemBalance();
-      setCurrentDonation(null);
-      setShowDonationApproveModal(false);
-    } catch (err: any) {
-      console.error(err.message);
-    }
-  };
-
-  const handleRejectDonation = async () => {
-    if (!currentDonation) return;
-
-    try {
-      await api.put(
-        `/donation/${currentDonation.id}/review`,
-        {
-          review: "Rejected",
-          status: "REJECTED",
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-
-      // Update local donations state
-      setDonations((prev) =>
-        prev.map((d) =>
-          d.id === currentDonation.id ? { ...d, status: "REJECTED" } : d,
-        ),
-      );
-
-      setCurrentDonation(null);
-      setShowDonationRejectModal(false);
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
   const mosqueNameMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -134,17 +62,14 @@ const SuperAdminDashboard = () => {
     return map;
   }, [mosques]);
 
-  // ====== FETCH FUNCTIONS ======
+  // Fetch functions
   const fetchMosques = async () => {
     try {
       const res = await api.get<Mosque[]>("/mosque", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMosques(res.data);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to fetch mosques");
-    }
+    } catch (err) { console.error(err); }
   };
 
   const fetchAdmins = async () => {
@@ -153,10 +78,7 @@ const SuperAdminDashboard = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setAdmins(res.data);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to fetch admins");
-    }
+    } catch (err) { console.error(err); }
   };
 
   const fetchDonations = async () => {
@@ -164,741 +86,435 @@ const SuperAdminDashboard = () => {
       const res = await api.get<Donation[]>("/donation", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Donations fetched:", res.data);
-
-      // Map donorName
       const donationsWithName = res.data.map((d) => ({
         ...d,
         donorName: d.donor?.name || "Anonymous",
         status: d.status.toUpperCase(),
       }));
-
-      // Sort: PENDING first
       donationsWithName.sort((a, b) => {
         if (a.status === "PENDING" && b.status !== "PENDING") return -1;
         if (a.status !== "PENDING" && b.status === "PENDING") return 1;
-        return 0; // keep original order if same
+        return 0;
       });
-
       setDonations(donationsWithName);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to fetch donations");
-    }
+    } catch (err) { console.error(err); }
   };
 
   const fetchRequests = async () => {
     try {
-      const res = await api.get<MosqueRequest[]>("/donation/request", {
+      const res = await api.get<DonationRequest[]>("/donation/request", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const response: MosqueRequest[] = res.data.map((r) => ({
+      const response = res.data.map((r: any) => ({
         ...r,
         requesterName: r.admin?.name || "Unknown",
         mosqueName: r.admin?.mosque?.name || "Unknown",
         mosqueLocation: r.admin?.mosque?.location || "Unknown",
       }));
       setRequests(response);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to fetch requests");
-    }
+    } catch (err) { console.error(err); }
   };
 
   const fetchSystemBalance = async () => {
     try {
-      const res = await api.get<{ balance: number }>(
-        "/donation/system/balance",
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      const res = await api.get<{ balance: number }>("/donation/system/balance", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setSystemBalance(res.data.balance);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   useEffect(() => {
-    const userString = localStorage.getItem("user");
-    if (userString) setSuperAdmin(JSON.parse(userString));
     fetchSystemBalance();
+    fetchMosques();
+    fetchAdmins();
   }, []);
 
-  // ====== REQUEST ACTIONS ======
-  const handleApproveRequest = async () => {
-    console.log("Approving request:", approveAmount);
-    if (!currentRequest || approveAmount <= 0)
-      return alert("Enter a valid amount");
+  const handleApproveDonation = async (donationId: string) => {
     try {
-      await api.put(
-        `/donation/request/${currentRequest.id}/approve`,
-        { sentAmount: approveAmount, sentDescription: approveDescription },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      await api.put(`/donation/${donationId}/review`, { review: "Approved" }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchDonations();
+      fetchSystemBalance();
+    } catch (err: any) { console.error(err.message); }
+  };
+
+  const handleRejectDonation = async (donationId: string) => {
+    try {
+      await api.put(`/donation/${donationId}/review`, { review: "Rejected", status: "REJECTED" }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDonations((prev) => prev.map((d) => d.id === donationId ? { ...d, status: "REJECTED" } : d));
+    } catch (err) { console.error(err); }
+  };
+
+  const handleApproveRequest = async (requestId: string, amount: number) => {
+    if (amount <= 0) return alert("Enter a valid amount");
+    try {
+      await api.put(`/donation/request/${requestId}/approve`, { sentAmount: amount }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       fetchRequests();
       fetchSystemBalance();
-      setCurrentRequest(null);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to approve request");
-    }
-  };
-  const handleRejectRequest = async () => {
-    if (!currentRequest || !rejectReason) return alert("Enter reason");
-
-    try {
-      const res = await api.put(
-        `/donation/request/${currentRequest.id}/reject`,
-        { reason: rejectReason },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-
-      // Update local requests state
-      setRequests((prev) =>
-        prev.map((r) =>
-          r.id === currentRequest.id
-            ? { ...r, status: "REJECTED", description: rejectReason }
-            : r,
-        ),
-      );
-
-      setCurrentRequest(null); // close modal
-    } catch (err) {
-      console.error(err);
-      alert("Failed to reject request");
-    }
+    } catch (err) { console.error(err); alert("Failed to approve request"); }
   };
 
-  const handleSendDonation = async () => {
-    if (!currentRequest || sendDonationAmount <= 0)
-      return alert("Enter valid amount");
+  const handleRejectRequest = async (requestId: string, reason: string) => {
+    if (!reason) return alert("Enter reason");
     try {
-      await api.post(
-        `/donation/request/send`,
-        {
-          beneficiaryId: currentRequest.id,
-          amount: sendDonationAmount,
-          description: sendDonationDescription,
-        },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      await api.put(`/donation/request/${requestId}/reject`, { reason }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       fetchRequests();
-      fetchSystemBalance();
-      setCurrentRequest(null);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to send donation");
-    }
+    } catch (err) { console.error(err); alert("Failed to reject request"); }
   };
 
-  // ====== RENDER ======
+  const navItems = [
+    {
+      label: "Overview",
+      active: view === "overview",
+      onClick: () => setView("overview"),
+      icon: <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>,
+    },
+    {
+      label: "Mosques",
+      active: view === "mosques",
+      onClick: () => { setView("mosques"); fetchMosques(); },
+      icon: <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
+    },
+    {
+      label: "Mosque Admins",
+      active: view === "admins",
+      onClick: () => { setView("admins"); fetchAdmins(); fetchMosques(); },
+      icon: <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>,
+    },
+    {
+      label: "Donations",
+      active: view === "donations",
+      onClick: () => { setView("donations"); fetchDonations(); },
+      icon: <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+    },
+    {
+      label: "Requests",
+      active: view === "requests",
+      onClick: () => { setView("requests"); fetchRequests(); },
+      icon: <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>,
+    },
+  ];
+
   return (
-    <div className={styles.page}>
-      <Header3
-        scroll={false}
-        handlePopup={() => {}}
-        handleMobileMenu={() => {}}
-      />
-      <main className={styles.main}>
-        {superAdmin && (
-          <div className={styles.superAdminCard}>
-            <div>
-              <p className={styles.superAdminName}>Name: {superAdmin.name}</p>
-              <p className={styles.superAdminRole}>Role: {superAdmin.role}</p>
+    <DashboardLayout title="Super Admin Dashboard" navItems={navItems}>
+      {/* Overview */}
+      {view === "overview" && (
+        <div className="space-y-6">
+          {/* Stats cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 1v8m0 0v1" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">System Balance</p>
+                  <p className="text-2xl font-bold text-gray-900">{systemBalance.toLocaleString()} Birr</p>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
-        {showDonationRejectModal && currentDonation && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modalCard}>
-              <h2 className={styles.modalTitle}>Reject Donation</h2>
-
-              <div className={styles.modalButtons}>
-                <button
-                  className={styles.btnRed}
-                  onClick={handleRejectDonation}
-                >
-                  Confirm Reject
-                </button>
-                <button
-                  className={styles.btnGray}
-                  onClick={() => {
-                    setCurrentDonation(null);
-                    setShowDonationRejectModal(false);
-                  }}
-                >
-                  Cancel
-                </button>
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Mosques</p>
+                  <p className="text-2xl font-bold text-gray-900">{mosques.length}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Admins</p>
+                  <p className="text-2xl font-bold text-gray-900">{admins.length}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Pending Requests</p>
+                  <p className="text-2xl font-bold text-gray-900">{requests.filter(r => r.status === "PENDING").length}</p>
+                </div>
               </div>
             </div>
           </div>
-        )}
 
-        {currentRequest && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modalCard}>
-              <h2 className={styles.modalTitle}>Reject Request</h2>
-
-              <textarea
-                className={styles.textarea}
-                placeholder="Enter rejection reason"
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-              />
-
-              <div className={styles.modalButtons}>
-                <button className={styles.btnRed} onClick={handleRejectRequest}>
-                  Confirm Reject
-                </button>
-
-                <button
-                  className={styles.btnGray}
-                  onClick={() => setCurrentRequest(null)}
-                >
-                  Cancel
-                </button>
-              </div>
+          {/* Quick actions */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div className="flex flex-wrap gap-3">
+              <button onClick={() => { setShowAddMosqueModal(true); fetchMosques(); }} className="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors">
+                + Add Mosque
+              </button>
+              <button onClick={() => { setShowAddAdminModal(true); fetchMosques(); }} className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                + Add Admin
+              </button>
+              <button onClick={() => { setView("donations"); fetchDonations(); }} className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors">
+                Review Donations
+              </button>
             </div>
-          </div>
-        )}
-
-        {currentRequest && approveAmount !== null && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modalCard}>
-              <h2 className={styles.modalTitle}>Approve Donation</h2>
-
-              <input
-                type="number"
-                className={styles.input}
-                value={approveAmount}
-                onChange={(e) => setApproveAmount(Number(e.target.value))}
-                placeholder="Amount"
-              />
-
-              <input
-                className={styles.input}
-                value={approveDescription}
-                onChange={(e) => setApproveDescription(e.target.value)}
-                placeholder="Description (optional)"
-              />
-
-              <div className={styles.modalButtons}>
-                <button
-                  className={styles.btnGreen}
-                  onClick={handleApproveRequest}
-                >
-                  Confirm
-                </button>
-                <button
-                  className={styles.btnGray}
-                  onClick={() => setCurrentRequest(null)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-        {showDonationApproveModal && currentDonation && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modalCard}>
-              <h2 className={styles.modalTitle}>Approve Donation</h2>
-
-              <div className={styles.modalButtons}>
-                <button
-                  className={styles.btnGreen}
-                  onClick={handleApproveDonation}
-                >
-                  Confirm
-                </button>
-
-                <button
-                  className={styles.btnGray}
-                  onClick={() => {
-                    setCurrentDonation(null);
-                    setShowDonationApproveModal(false);
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ===== BUTTON ROW ===== */}
-        <div className={styles.buttonRow}>
-          <button
-            className={styles.actionBtn}
-            onClick={() => setShowAddModal(true)}
-          >
-            Add Mesjid
-          </button>
-          <button
-            className={styles.actionBtn}
-            onClick={() => setShowAddAdminModal(true)}
-          >
-            Add Mesjid Admin
-          </button>
-          <button
-            className={styles.actionBtn}
-            onClick={() => {
-              setShowMosquesList(true);
-              setShowAdminsList(false);
-              setShowDonationsList(false);
-              setShowRequestsList(false);
-              fetchMosques();
-            }}
-          >
-            List Mesjid
-          </button>
-          <button
-            className={styles.actionBtn}
-            onClick={() => {
-              setShowAdminsList(true);
-              setShowMosquesList(false);
-              setShowDonationsList(false);
-              setShowRequestsList(false);
-              fetchAdmins();
-            }}
-          >
-            List Mesjid Admins
-          </button>
-          <button
-            className={styles.actionBtn}
-            onClick={() => {
-              setShowDonationsList(true);
-              setShowMosquesList(false);
-              setShowAdminsList(false);
-              setShowRequestsList(false);
-              fetchDonations();
-            }}
-          >
-            Review Donations
-          </button>
-          <button
-            className={styles.actionBtn}
-            onClick={() => {
-              setShowRequestsList(true);
-              setShowMosquesList(false);
-              setShowAdminsList(false);
-              setShowDonationsList(false);
-              fetchRequests();
-            }}
-          >
-            Mesjid Requests
-          </button>
-          <div
-            style={{
-              marginLeft: "auto",
-              fontWeight: 700,
-              color: "#854e0e",
-              fontSize: "1.3rem",
-              alignSelf: "center",
-            }}
-          >
-            Total Balance: {systemBalance.toLocaleString()} Birr
           </div>
         </div>
+      )}
 
-        {/* ===== MODALS ===== */}
-        {showAddModal && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modalCard}>
-              <h2 className={styles.modalTitle}>Add Mesjid</h2>
-              <form
-                className={styles.form}
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  const form = e.currentTarget;
-                  const name = form.name.value;
-                  const location = form.location.value;
-
-                  try {
-                    await api.post(
-                      "/mosque",
-                      { name, location },
-                      { headers: { Authorization: `Bearer ${token}` } },
-                    );
-                    alert("Mesjid added!");
-                    fetchMosques();
-                    setShowAddModal(false);
-                  } catch (err) {
-                    console.error(err);
-                    alert("Failed to add mesjid");
-                  }
-                }}
-              >
-                <input
-                  name="name"
-                  className={styles.input}
-                  placeholder="Name"
-                  required
-                />
-                <input
-                  name="location"
-                  className={styles.input}
-                  placeholder="Location"
-                  required
-                />
-                <div className={styles.modalButtons}>
-                  <button type="submit" className={styles.btnYellow}>
-                    Add
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.btnGray}
-                    onClick={() => setShowAddModal(false)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
+      {/* Mosques View */}
+      {view === "mosques" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Mosques</h2>
+            <button onClick={() => setShowAddMosqueModal(true)} className="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700">
+              + Add Mosque
+            </button>
           </div>
-        )}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {mosques.map((m) => (
+                  <tr key={m.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{m.name}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{m.location}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{new Date(m.createdAt).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+                {mosques.length === 0 && (
+                  <tr><td colSpan={3} className="px-6 py-8 text-center text-sm text-gray-500">No mosques found</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
-        {showAddAdminModal && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modalCard}>
-              <h2 className={styles.modalTitle}>Add Mesjid Admin</h2>
-              <form
-                className={styles.form}
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  const form = e.currentTarget;
-                  const name = form.name.value;
-                  const email = form.email.value;
-                  const mosqueId = form.mosqueId.value;
+      {/* Admins View */}
+      {view === "admins" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Mosque Admins</h2>
+            <button onClick={() => setShowAddAdminModal(true)} className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+              + Add Admin
+            </button>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mosque</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {admins.map((a) => (
+                  <tr key={a.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{a.name || "—"}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{a.email}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{mosqueNameMap.get(a.mosqueId || "") || "—"}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{new Date(a.createdAt).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+                {admins.length === 0 && (
+                  <tr><td colSpan={4} className="px-6 py-8 text-center text-sm text-gray-500">No admins found</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
-                  try {
-                    await api.post(
-                      "/admin",
-                      { name, email, mosqueId },
-                      { headers: { Authorization: `Bearer ${token}` } },
-                    );
-                    alert("Admin added!");
-                    fetchAdmins();
-                    setShowAddAdminModal(false);
-                  } catch (err) {
-                    console.error(err);
-                    alert("Failed to add admin");
-                  }
-                }}
-              >
-                <input
-                  name="name"
-                  className={styles.input}
-                  placeholder="Name"
-                  required
-                />
-                <input
-                  name="email"
-                  className={styles.input}
-                  type="email"
-                  placeholder="Email"
-                  required
-                />
-                <select name="mosqueId" className={styles.select} required>
+      {/* Donations View */}
+      {view === "donations" && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900">Donations</h2>
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Donor</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {donations.map((d) => (
+                  <tr key={d.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{d.donorName}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{d.amount} Birr</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{d.type || "—"}</td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
+                        d.status === "PENDING" ? "bg-yellow-100 text-yellow-700" :
+                        d.status === "RECEIVED" || d.status === "APPROVED" ? "bg-green-100 text-green-700" :
+                        "bg-red-100 text-red-700"
+                      }`}>{d.status}</span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{new Date(d.createdAt).toLocaleDateString()}</td>
+                    <td className="px-6 py-4">
+                      {d.status === "PENDING" && (
+                        <div className="flex gap-2">
+                          <button onClick={() => handleApproveDonation(d.id)} className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-lg hover:bg-green-200">Approve</button>
+                          <button onClick={() => handleRejectDonation(d.id)} className="px-3 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-lg hover:bg-red-200">Reject</button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {donations.length === 0 && (
+                  <tr><td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">No donations found</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Requests View */}
+      {view === "requests" && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900">Mosque Donation Requests</h2>
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Requester</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mosque</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {requests.map((r) => (
+                  <tr key={r.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{r.requesterName}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{r.mosqueName}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{r.amount} Birr</td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
+                        r.status === "PENDING" ? "bg-yellow-100 text-yellow-700" :
+                        r.status === "APPROVED" ? "bg-green-100 text-green-700" :
+                        "bg-red-100 text-red-700"
+                      }`}>{r.status}</span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{new Date(r.createdAt).toLocaleDateString()}</td>
+                    <td className="px-6 py-4">
+                      {r.status === "PENDING" && (
+                        <div className="flex gap-2">
+                          <button onClick={() => handleApproveRequest(r.id, r.amount)} className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-lg hover:bg-green-200">Approve</button>
+                          <button onClick={() => handleRejectRequest(r.id, "Rejected by admin")} className="px-3 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-lg hover:bg-red-200">Reject</button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {requests.length === 0 && (
+                  <tr><td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">No requests found</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Add Mosque Modal */}
+      {showAddMosqueModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Mosque</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const form = e.currentTarget;
+              const name = (form.elements.namedItem("name") as HTMLInputElement).value;
+              const location = (form.elements.namedItem("location") as HTMLInputElement).value;
+              try {
+                await api.post("/mosque", { name, location }, { headers: { Authorization: `Bearer ${token}` } });
+                fetchMosques();
+                setShowAddMosqueModal(false);
+              } catch (err) { alert("Failed to add mosque"); }
+            }}>
+              <div className="space-y-4">
+                <input name="name" placeholder="Mosque Name" required className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none" />
+                <input name="location" placeholder="Location" required className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none" />
+              </div>
+              <div className="flex justify-end gap-3 mt-6">
+                <button type="button" onClick={() => setShowAddMosqueModal(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
+                <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700">Add Mosque</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Admin Modal */}
+      {showAddAdminModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Mosque Admin</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const form = e.currentTarget;
+              const name = (form.elements.namedItem("name") as HTMLInputElement).value;
+              const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+              const mosqueId = (form.elements.namedItem("mosqueId") as HTMLSelectElement).value;
+              try {
+                await api.post("/admin", { name, email, mosqueId }, { headers: { Authorization: `Bearer ${token}` } });
+                fetchAdmins();
+                setShowAddAdminModal(false);
+              } catch (err) { alert("Failed to add admin"); }
+            }}>
+              <div className="space-y-4">
+                <input name="name" placeholder="Name" required className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none" />
+                <input name="email" type="email" placeholder="Email" required className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none" />
+                <select name="mosqueId" required className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
                   <option value="">Select Mosque</option>
-                  {mosques.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name}
-                    </option>
-                  ))}
+                  {mosques.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </select>
-                <div className={styles.modalButtons}>
-                  <button type="submit" className={styles.btnYellow}>
-                    Add Admin
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.btnGray}
-                    onClick={() => setShowAddAdminModal(false)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
+              </div>
+              <div className="flex justify-end gap-3 mt-6">
+                <button type="button" onClick={() => setShowAddAdminModal(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
+                <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Add Admin</button>
+              </div>
+            </form>
           </div>
-        )}
-        {/* ===== TABLES (MOSQUES, ADMINS, DONATIONS, REQUESTS) ===== */}
-        {showMosquesList && (
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr className={styles.theadRow}>
-                  <th className={styles.th}>Name</th>
-                  <th className={styles.th}>Location</th>
-                  <th className={styles.th}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mosques.length > 0 ? (
-                  mosques.map((m) => (
-                    <tr key={m.id} className={styles.tr}>
-                      <td className={styles.td}>{m.name}</td>
-                      <td className={styles.td}>{m.location}</td>
-                      <td className={styles.actionsCell}>
-                        <button
-                          className={`${styles.smallBtn} ${styles.editBtn}`}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className={`${styles.smallBtn} ${styles.deleteBtn}`}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={3} className={styles.td}>
-                      No Mesjid found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {showAdminsList && (
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr className={styles.theadRow}>
-                  <th className={styles.th}>Name</th>
-                  <th className={styles.th}>Email</th>
-                  <th className={styles.th}>Mosque</th>
-                  <th className={styles.th}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {admins.length > 0 ? (
-                  admins.map((a) => (
-                    <tr key={a.id} className={styles.tr}>
-                      <td className={styles.td}>{a.name}</td>
-                      <td className={styles.td}>{a.email}</td>
-                      <td className={styles.td}>
-                        {mosqueNameMap.get(a.mosqueId || "")}
-                      </td>
-                      <td className={styles.actionsCell}>
-                        <button
-                          className={`${styles.smallBtn} ${styles.editBtn}`}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className={`${styles.smallBtn} ${styles.deleteBtn}`}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className={styles.td}>
-                      No admins found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {showDonationsList && (
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr className={styles.theadRow}>
-                  <th className={styles.th}>Donor</th>
-                  <th className={styles.th}>Amount</th>
-                  <th className={styles.th}>Type</th>
-                  <th className={styles.th}>Status</th>
-                  <th className={styles.th}>Date</th>
-                  <th className={styles.th}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {donations.length > 0 ? (
-                  donations.map((donation) => (
-                    <tr key={donation.id} className={styles.tr}>
-                      <td className={styles.td}>{donation.donorName}</td>
-                      <td className={styles.td}>{donation.amount}</td>
-                      <td className={styles.td}>{donation.type}</td>
-                      <td className={styles.td}>{donation.status}</td>
-                      <td className={styles.td}>
-                        {new Date(donation.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className={styles.actionsCell}>
-                        {r.status === "PENDING" ? (
-                          <>
-                            <button
-                              className={`${styles.smallBtn} ${styles.editBtn}`}
-                              onClick={() => {
-                                setApproveAmount(r.amount);
-                                setApproveDescription("");
-                                setCurrentRequest(r);
-                              }}
-                            >
-                              Approve
-                            </button>
-                            <button
-                              className={`${styles.smallBtn} ${styles.deleteBtn}`}
-                              onClick={() => {
-                                setRejectReason("");
-                                setCurrentRequest(r);
-                              }}
-                            >
-                              Reject
-                            </button>
-                            <button
-                              className={`${styles.smallBtn} ${styles.btnGray}`}
-                              onClick={() => {
-                                setSendDonationAmount(r.amount);
-                                setSendDonationDescription("");
-                                setCurrentRequest(r);
-                              }}
-                            >
-                              Send
-                            </button>
-                          </>
-                        ) : (
-                          <span
-                            style={{
-                              fontWeight: 700,
-                              color: r.status === "APPROVED" ? "green" : "red",
-                            }}
-                          >
-                            {r.status}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className={styles.td}>
-                      No donations found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {showRequestsList && (
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr className={styles.theadRow}>
-                  <th className={styles.th}>Requester</th>
-                  <th className={styles.th}>Mesjid</th>
-                  <th className={styles.th}>Location</th>
-                  <th className={styles.th}>Amount</th>
-                  <th className={styles.th}>Requested Date</th>
-                  <th className={styles.th}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {requests.length > 0 ? (
-                  requests.map((r) => (
-                    <tr key={r.id} className={styles.tr}>
-                      <td className={styles.td}>{r.requesterName}</td>
-                      <td className={styles.td}>{r.mosqueName}</td>
-                      <td className={styles.td}>{r.mosqueLocation}</td>
-                      <td className={styles.td}>{r.amount}</td>
-                      <td className={styles.td}>
-                        {new Date(r.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className={styles.actionsCell}>
-                        <button
-                          className={`${styles.smallBtn} ${styles.editBtn}`}
-                          onClick={() => {
-                            setApproveAmount(r.amount);
-                            setApproveDescription("");
-                            setCurrentRequest(r);
-                          }}
-                        >
-                          Approve
-                        </button>
-                        <button
-                          className={`${styles.smallBtn} ${styles.deleteBtn}`}
-                          onClick={() => {
-                            setRejectReason("");
-                            setCurrentRequest(r);
-                            setShowRejectModal(true);
-                          }}
-                        >
-                          Reject
-                        </button>
-                        <button
-                          className={`${styles.smallBtn} ${styles.btnGray}`}
-                          onClick={() => {
-                            setSendDonationAmount(r.amount);
-                            setSendDonationDescription("");
-                            setCurrentRequest(r);
-                          }}
-                        >
-                          Send
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className={styles.td}>
-                      No requests found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {showRejectModal && currentRequest && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.modalCard}>
-      <h2 className={styles.modalTitle}>Reject Request</h2>
-
-      <textarea
-        className={styles.textarea}
-        placeholder="Enter rejection reason"
-        value={rejectReason}
-        onChange={(e) => setRejectReason(e.target.value)}
-      />
-
-      <div className={styles.modalButtons}>
-        <button
-          className={styles.btnRed}
-          onClick={async () => {
-            await handleRejectRequest();
-            setShowRejectModal(false); // close modal after reject
-          }}
-        >
-          Confirm Reject
-        </button>
-
-        <button
-          className={styles.btnGray}
-          onClick={() => setShowRejectModal(false)}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-      </main>
-      <Footer3 />
-    </div>
+        </div>
+      )}
+    </DashboardLayout>
   );
 };
 

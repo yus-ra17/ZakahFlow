@@ -8,8 +8,10 @@ import {
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
-import { OAuthSuccess } from "./pages/oAuthSuccess";
+import { OAuthSuccess } from "./pages/OAuthSuccess";
 import ZakahCalculatorPage from "./pages/zakahCalculator";
+import NisabPage from "./pages/NisabPage";
+import QuranHadithPage from "./pages/QuranHadithPage";
 
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import MosqueAdminsList from "./pages/MosqueAdminsList";
@@ -17,7 +19,6 @@ import AddMosqueAdmin from "./pages/AddMosqueAdmin";
 import MosquesList from "./pages/MosquesList";
 import AddMosque from "./pages/AddMosque";
 import DonationDetails from "./pages/DonationDetails";
-import Donate from "./pages/donate";
 import SuperAdminRoute from "./components/SuperAdminRoute";
 import AdminRoute from "./components/AdminRoute";
 
@@ -53,6 +54,18 @@ const zakahCalculatorRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/zakahcalculator",
   component: ZakahCalculatorPage,
+});
+
+const nisabRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/nisab",
+  component: NisabPage,
+});
+
+const quranHadithRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/quran-hadith",
+  component: QuranHadithPage,
 });
 
 const oAuthSuccessRoute = createRoute({
@@ -125,12 +138,6 @@ const donationDetailsRoute = createRoute({
   component: DonationDetails,
 });
 
-const donateRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/donate",
-  component: Donate,
-});
-
 // ================= ADMIN ROUTES =================
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -154,8 +161,9 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   registerRoute,
   zakahCalculatorRoute,
+  nisabRoute,
+  quranHadithRoute,
   donationDetailsRoute,
-  donateRoute,
   oAuthSuccessRoute,
   distributorRoute.addChildren([distributorDashboardRoute]),
 
@@ -168,7 +176,7 @@ const routeTree = rootRoute.addChildren([
   ]),
 
   adminRoute.addChildren([
-    adminDashboardRoute, //
+    adminDashboardRoute,
   ]),
 ]);
 
