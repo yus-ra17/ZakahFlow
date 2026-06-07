@@ -14,10 +14,10 @@ import NisabPage from "./pages/NisabPage";
 import QuranHadithPage from "./pages/QuranHadithPage";
 
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
-import MesjidAdminsList from "./pages/MesjidAdminsList";
-import AddMesjidAdmin from "./pages/AddMesjidAdmin";
-import MesjidsList from "./pages/MesjidsList";
-import AddMesjid from "./pages/AddMesjid";
+import MesjidAdminsList from "./pages/MosqueAdminsList";
+import AddMesjidAdmin from "./pages/AddMosqueAdmin";
+import MesjidsList from "./pages/MosquesList";
+import AddMesjid from "./pages/AddMosque";
 import DonationDetails from "./pages/DonationDetails";
 import SuperAdminRoute from "./components/SuperAdminRoute";
 import AdminRoute from "./components/AdminRoute";
