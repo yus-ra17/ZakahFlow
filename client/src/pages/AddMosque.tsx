@@ -10,7 +10,7 @@ const AddMesjid = () => {
     e.preventDefault();
 
     try {
-      await api.post("/mesjid", { name, location });
+      await api.post("/mosque", { name, location });
       alert("Mesjid created successfully");
       setName("");
       setLocation("");

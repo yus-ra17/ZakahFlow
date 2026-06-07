@@ -15,7 +15,7 @@ const MesjidsList = () => {
   useEffect(() => {
     const fetchMesjids = async () => {
       try {
-        const res = await api.get<Mesjid[]>("/mesjid");
+        const res = await api.get<Mesjid[]>("/mosque");
         setMesjids(res.data);
       } catch {
         alert("Failed to fetch mesjids");

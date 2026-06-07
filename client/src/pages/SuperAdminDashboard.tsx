@@ -65,7 +65,7 @@ const SuperAdminDashboard = () => {
   // Fetch functions
   const fetchMesjids = async () => {
     try {
-      const res = await api.get<Mesjid[]>("/mesjid", {
+      const res = await api.get<Mesjid[]>("/mosque", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMesjids(res.data);
@@ -463,7 +463,7 @@ const SuperAdminDashboard = () => {
               const name = (form.elements.namedItem("name") as HTMLInputElement).value;
               const location = (form.elements.namedItem("location") as HTMLInputElement).value;
               try {
-                await api.post("/mesjid", { name, location }, { headers: { Authorization: `Bearer ${token}` } });
+                await api.post("/mosque", { name, location }, { headers: { Authorization: `Bearer ${token}` } });
                 fetchMesjids();
                 setShowAddMesjidModal(false);
               } catch (err) { alert("Failed to add mesjid"); }

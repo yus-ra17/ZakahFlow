@@ -14,7 +14,7 @@ const AddMesjidAdmin = () => {
   const [mesjids, setMesjids] = useState<Mesjid[]>([]);
 
   useEffect(() => {
-    api.get<Mesjid[]>("/mesjids").then((res) => {
+    api.get<Mesjid[]>("/mosque").then((res) => {
       setMesjids(res.data);
     });
   }, []);
