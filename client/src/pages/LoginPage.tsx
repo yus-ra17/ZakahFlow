@@ -17,11 +17,7 @@ export function LoginPage() {
       const res = await api.post("/auth/login", { email, password });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      const role = res.data.user.role.toUpperCase();
-      if (role === "SUPERADMIN") window.location.href = "/superadmin";
-      else if (role === "ADMIN") window.location.href = "/admin";
-      else if (role === "DISTRIBUTOR") window.location.href = "/distributor";
-      else window.location.href = "/";
+      window.location.href = "/superadmin";
     } catch (err: any) {
       if (err.code === "ERR_NETWORK") setError("Cannot connect to server. Please try again later.");
       else setError(err.response?.data?.error || "Login failed");

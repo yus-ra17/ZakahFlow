@@ -40,13 +40,7 @@ export default function Header() {
   };
 
   const getDashboardLink = () => {
-    if (!user) return "/";
-    switch (user.role.toUpperCase()) {
-      case "SUPERADMIN": return "/superadmin";
-      case "ADMIN": return "/admin";
-      case "DISTRIBUTOR": return "/distributor";
-      default: return "/zakahcalculator";
-    }
+    return "/superadmin";
   };
 
   const navLinks = [
